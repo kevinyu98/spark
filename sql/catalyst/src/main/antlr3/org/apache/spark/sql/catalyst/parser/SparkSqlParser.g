@@ -26,7 +26,7 @@ ASTLabelType=CommonTree;
 backtrack=false;
 k=3;
 }
-import SelectClauseParser, FromClauseParser, IdentifiersParser, KeywordParser, ExpressionParser;
+import SelectClauseParser, FromClauseParser, IdentifiersParser, KeywordParser, ExpressionParser, ExpressionParser2;
 
 tokens {
 TOK_INSERT;
@@ -48,6 +48,10 @@ TOK_TABLE_OR_COL;
 TOK_FUNCTION;
 TOK_FUNCTIONDI;
 TOK_FUNCTIONSTAR;
+TOK_FUNCTIONTR;
+TOK_BOTH;
+TOK_LEADING;
+TOK_TRAILING;
 TOK_WHERE;
 TOK_OP_EQ;
 TOK_OP_NE;

@@ -49,33 +49,6 @@ catch (RecognitionException e) {
 }
 }
 
-// fun(par1, par2, par3)
-function
-@init { gParent.pushMsg("function specification", state); }
-@after { gParent.popMsg(state); }
-    :
-    functionName
-    LPAREN
-      (
-        (STAR) => (star=STAR)
-        | (dist=KW_DISTINCT)? (selectExpression (COMMA selectExpression)*)?
-      )
-    RPAREN (KW_OVER ws=window_specification)?
-           -> {$star != null}? ^(TOK_FUNCTIONSTAR functionName $ws?)
-           -> {$dist == null}? ^(TOK_FUNCTION functionName (selectExpression+)? $ws?)
-                            -> ^(TOK_FUNCTIONDI functionName (selectExpression+)? $ws?)
-    ;
-
-functionName
-@init { gParent.pushMsg("function name", state); }
-@after { gParent.popMsg(state); }
-    : // Keyword IF is also a function name
-    (KW_IF | KW_ARRAY | KW_MAP | KW_STRUCT | KW_UNIONTYPE) => (KW_IF | KW_ARRAY | KW_MAP | KW_STRUCT | KW_UNIONTYPE)
-    |
-    (functionIdentifier) => functionIdentifier
-    |
-    {!useSQL11ReservedKeywordsForIdentifier()}? sql11ReservedKeywordsUsedAsCastFunctionName -> Identifier[$sql11ReservedKeywordsUsedAsCastFunctionName.text]
-    ;
 
 castExpression
 @init { gParent.pushMsg("cast expression", state); }

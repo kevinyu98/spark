@@ -34,6 +34,12 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
 
   setupTestData()
 
+  test("TRIM function") {
+    //sql("SELECT TRIM( BOTH 'a' FROM 'abc' )")
+    //sql("SELECT TRIM( 'abc' )").explain(true)
+    sql("SELECT TRIM( 'abc' )")
+  }
+
   test("having clause") {
     Seq(("one", 1), ("two", 2), ("three", 3), ("one", 5)).toDF("k", "v").registerTempTable("hav")
     checkAnswer(
