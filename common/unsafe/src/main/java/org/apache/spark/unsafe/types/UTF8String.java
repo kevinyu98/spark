@@ -461,6 +461,126 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     return UTF8String.fromBytes(newBytes);
   }
 
+
+  public UTF8String trimOptBoth (UTF8String trimChars){
+    int s = 0;
+    int e = this.numBytes - trimChars.numBytes;
+
+    if (trimChars.numBytes <= 1 && trimChars.getByte(s) <= 0x20 && trimChars.getByte(s) >= 0x00)
+         return this.trim();
+
+     // trim character great than the string
+    if ( e < 0 ) {
+        return this;
+    }
+
+     // find trim char from both sides
+    int sp = this.find(trimChars, 0);
+    int ep = e;
+    ep = this.rfind(trimChars, ep) ;
+
+    // if couldn't find or the trimChar is not starting from left or right
+    if (sp  != s && ep != e ) {
+        //couldn't find the trim characters
+        return this;
+    } else {
+        if ( ep == e && sp == s ) {
+            // will trim the characters from both sides
+            sp = trimChars.numBytes;
+            ep = e - 1;
+
+        } else if ( sp == s ){
+            // match trim chars start from left side
+            sp = trimChars.numBytes;
+            ep = this.numBytes-1;
+        } else {
+            //match trim chars from right side
+            sp = s;
+            ep = e - 1;
+        }
+
+        if (sp > ep) {
+            // empty string
+            return UTF8String.fromBytes(new byte[0]);
+        } else {
+            return copyUTF8String(sp, ep);
+        }
+    }
+  }
+
+  public UTF8String trimOptLead(UTF8String trimChars) {
+
+      int s = 0;
+      int e = this.numBytes - trimChars.numBytes;
+      int ep = this.numBytes-1;
+
+      if (trimChars.numBytes <= 1 && trimChars.getByte(s) <= 0x20 && trimChars.getByte(s) >= 0x00) {
+          return this.trimLeft();
+      }
+
+      // trim character great than the string
+      if ( e < 0 ) {
+          return this;
+      }
+
+      int sp = this.find(trimChars, 0);
+
+
+
+      // couldn't find the trim characters from the beginning of the left side
+      if (sp != s ) {
+          return this;
+      }
+      else {
+          // trim the whole string
+          if (e == 0) {
+              return UTF8String.fromBytes(new byte[0]);
+          }
+          else {
+              sp = trimChars.numBytes;
+              return copyUTF8String(sp, ep);
+          }
+
+      }
+  }
+
+
+  public UTF8String trimOptTrail(UTF8String trimChars) {
+
+        int sp = 0;
+        int e = this.numBytes - trimChars.numBytes;
+        //int ep = this.numBytes-1;
+
+        if (trimChars.numBytes <= 1 && trimChars.getByte(sp) <= 0x20 && trimChars.getByte(sp) >= 0x00) {
+            return this.trimRight();
+        }
+
+        // trim character great than the string
+        if ( e < 0 ) {
+            return this;
+        }
+
+        int ep = this.rfind(trimChars, e);
+
+
+
+        // couldn't find the trim characters from the right side
+        if (ep != e ) {
+            return this;
+        }
+        else {
+            // trim the whole string
+            if (e == 0) {
+                return UTF8String.fromBytes(new byte[0]);
+            }
+            else {
+                ep = ep - 1;
+                return copyUTF8String(sp, ep);
+            }
+
+        }
+    }
+
   public UTF8String trim() {
     int s = 0;
     int e = this.numBytes - 1;

@@ -26,6 +26,8 @@ import org.apache.spark.sql.catalyst.trees.TreeNode
 import org.apache.spark.sql.catalyst.util.quoteIdentifier
 import org.apache.spark.sql.types.{DataType, StructType}
 
+
+
 /**
  * Thrown when an invalid attempt is made to access a property of a tree that has yet to be fully
  * resolved.

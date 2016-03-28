@@ -360,6 +360,98 @@ case class StringTrim(child: Expression)
 }
 
 /**
+ * A function that trim the spaces or char from both ends for the specified string.
+ */
+case class StringTrimBoth(left: Expression, right: Expression)
+  extends BinaryExpression with ImplicitCastInputTypes {
+
+
+  override def dataType: DataType = StringType
+
+  override def inputTypes: Seq[DataType] = Seq(StringType, StringType)
+
+  override def nullSafeEval(trimStr: Any, targetStr: Any): Any = {
+    targetStr.asInstanceOf[UTF8String].trimOptBoth(trimStr.asInstanceOf[UTF8String])
+  }
+
+  def convert(v: UTF8String): UTF8String = v.trimOptBoth(left.asInstanceOf[UTF8String])
+
+  override def prettyName: String = "trimBoth"
+
+  override def genCode(ctx: CodegenContext, ev: ExprCode): String = {
+    defineCodeGen(ctx, ev, (c, targetStr) => s"($targetStr).trimOptBoth($c)")
+  }
+
+  override def sql: String = {
+    val leftSQL = left.map(_.sql).mkString(", ")
+    val rightSQL = right.map(_.sql).mkString(", ")
+    s"trim(BOTH $leftSQL FROM $rightSQL)"
+  }
+}
+
+/**
+ * A function that trim the spaces or char from both ends for the specified string.
+ */
+case class StringTrimLead(left: Expression, right: Expression)
+  extends BinaryExpression with ImplicitCastInputTypes {
+
+
+  override def dataType: DataType = StringType
+
+  override def inputTypes: Seq[DataType] = Seq(StringType, StringType)
+
+  override def nullSafeEval(trimStr: Any, targetStr: Any): Any = {
+    targetStr.asInstanceOf[UTF8String].trimOptLead(trimStr.asInstanceOf[UTF8String])
+  }
+
+  def convert(v: UTF8String): UTF8String = v.trimOptLead(left.asInstanceOf[UTF8String])
+
+  override def prettyName: String = "trimLeading"
+
+  override def genCode(ctx: CodegenContext, ev: ExprCode): String = {
+    defineCodeGen(ctx, ev, (c, targetStr) => s"($targetStr).trimOptLead($c)")
+  }
+
+  override def sql: String = {
+    val leftSQL = left.map(_.sql).mkString(", ")
+    val rightSQl = right.map(_.sql).mkString(", ")
+    s"trim(LEADING $leftSQL FROM $rightSQl)"
+  }
+
+}
+
+/**
+ * A function that trim the spaces or char from right ends for the specified string.
+ */
+case class StringTrimTrail(left: Expression, right: Expression)
+  extends BinaryExpression with ImplicitCastInputTypes {
+
+
+  override def dataType: DataType = StringType
+
+  override def inputTypes: Seq[DataType] = Seq(StringType, StringType)
+
+  override def nullSafeEval(trimStr: Any, targetStr: Any): Any = {
+    targetStr.asInstanceOf[UTF8String].trimOptTrail(trimStr.asInstanceOf[UTF8String])
+  }
+
+  def convert(v: UTF8String): UTF8String = v.trimOptTrail(left.asInstanceOf[UTF8String])
+
+  override def prettyName: String = "trimTrailing"
+
+  override def genCode(ctx: CodegenContext, ev: ExprCode): String = {
+    defineCodeGen(ctx, ev, (c, targetStr) => s"($targetStr).trimOptTrail($c)")
+  }
+
+  override def sql: String = {
+    val leftSQL = left.map(_.sql).mkString(", ")
+    val rightSQl = right.map(_.sql).mkString(", ")
+    s"trim(TRAILING $leftSQL FROM $rightSQl)"
+  }
+
+}
+
+/**
  * A function that trim the spaces from left end for given string.
  */
 case class StringTrimLeft(child: Expression)
