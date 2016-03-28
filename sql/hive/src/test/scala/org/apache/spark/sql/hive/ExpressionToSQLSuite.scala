@@ -194,6 +194,7 @@ class ExpressionToSQLSuite extends SQLBuilderTest with SQLTestUtils {
     checkSqlGeneration("SELECT locate('is', 'This is a test', 3)")
     checkSqlGeneration("SELECT lpad('SparkSql', 16, 'Learning')")
     checkSqlGeneration("SELECT ltrim('  SparkSql ')")
+    checkSqlGeneration("SELECT trim(LEADING ' ' FROM '  SparkSql ')")
     // wait for resolution of JIRA SPARK-12719 SQL Generation for Generators
     // checkSqlGeneration("SELECT json_tuple('{\"f1\": \"value1\", \"f2\": \"value2\"}','f1')")
     checkSqlGeneration("SELECT printf('aa%d%s', 123, 'cc')")
@@ -203,6 +204,7 @@ class ExpressionToSQLSuite extends SQLBuilderTest with SQLTestUtils {
     checkSqlGeneration("SELECT reverse('SparkSql')")
     checkSqlGeneration("SELECT rpad('SparkSql', 16, ' is Cool')")
     checkSqlGeneration("SELECT rtrim('  SparkSql ')")
+    checkSqlGeneration("Select trim(TRAILING ' ' FROM '  SparkSql ')")
     checkSqlGeneration("SELECT soundex('SparkSql')")
     checkSqlGeneration("SELECT space(2)")
     checkSqlGeneration("SELECT split('aa2bb3cc', '[1-9]+')")
@@ -212,6 +214,7 @@ class ExpressionToSQLSuite extends SQLBuilderTest with SQLTestUtils {
     checkSqlGeneration("SELECT substring_index('www.apache.org','.',1)")
     checkSqlGeneration("SELECT translate('translate', 'rnlt', '123')")
     checkSqlGeneration("SELECT trim('  SparkSql ')")
+    checkSqlGeneration("SELECT trim(BOTH ' ' FROM '  SparkSql ')")
     checkSqlGeneration("SELECT ucase('SparkSql')")
     checkSqlGeneration("SELECT unbase64('SparkSql')")
     checkSqlGeneration("SELECT unhex(41)")

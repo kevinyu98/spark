@@ -1749,4 +1749,50 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
         |FROM (SELECT '{"f1": "value1", "f2": 12}' json, 'hello' as str) test
       """.stripMargin), Row("value1", "12", BigDecimal("3.14"), "hello"))
   }
+  test("SPARK-trim") {
+    withTable("trimTb") {
+      Seq(("one  ", 1),("otwo", 2)).toDF("k", "v").write.saveAsTable("trimTb")
+
+      checkAnswer(sql(
+        """
+          |SELECT trim(BOTH ' ' FROM k) FROM trimTb
+        """.stripMargin), Row("one") :: Row("otwo") :: Nil)
+
+      checkAnswer(sql(
+        """
+          |SELECT trim(BOTH 'o' FROM k) FROM trimTb
+        """.stripMargin), Row("ne  ") :: Row("tw") :: Nil)
+
+      checkAnswer(sql(
+        """
+          |SELECT trim(LEADING ' ' FROM k) FROM trimTb
+        """.stripMargin), Row("one  ") :: Row("otwo") :: Nil )
+
+      checkAnswer(sql(
+        """
+          |SELECT trim(LEADING 'o' FROM k) FROM trimTb
+        """.stripMargin), Row("ne  ") :: Row("two") :: Nil)
+
+      checkAnswer(sql(
+        """
+          |SELECT trim(LEADING 'one' FROM k) FROM trimTb
+        """.stripMargin), Row("  ") :: Row("otwo") :: Nil)
+
+    checkAnswer(sql(
+      """
+        |SELECT trim(TRAILING ' ' FROM k) FROM trimTb
+      """.stripMargin), Row("one") :: Row("otwo") :: Nil )
+
+    checkAnswer(sql(
+      """
+        |SELECT trim(TRAILING 'o' FROM k) FROM trimTb
+      """.stripMargin), Row("one  ") :: Row("otw") :: Nil)
+
+    checkAnswer(sql(
+      """
+        |SELECT trim(TRAILING 'wo' FROM k) FROM trimTb
+      """.stripMargin), Row("one  ") :: Row("ot") :: Nil)
+  }
+
+  }
 }

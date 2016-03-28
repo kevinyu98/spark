@@ -26,7 +26,7 @@ import org.apache.spark.sql.catalyst.trees.TreeNode
 import org.apache.spark.sql.catalyst.util.quoteIdentifier
 import org.apache.spark.sql.types.{DataType, StructType}
 
-import scala.collection.mutable
+
 
 /**
  * Thrown when an invalid attempt is made to access a property of a tree that has yet to be fully
@@ -148,21 +148,6 @@ case class UnresolvedFunction(
 
   override def prettyName: String = name
   override def toString: String = s"'$name(${children.mkString(", ")})"
-}
-
-case class UnresolvedFunctionWithOptions(
-     name: String,
-     options: Map[String, String],
-     children: Seq[Expression]
-  ) extends Expression with Unevaluable  {
-
-  override def dataType: DataType = throw new UnresolvedException(this, "dataType")
-  override def foldable: Boolean = throw new UnresolvedException(this, "foldable")
-  override def nullable: Boolean = throw new UnresolvedException(this, "nullable")
-  override lazy val resolved = false
-
-  override def prettyName: String = name
-  override def toString: String = s"'$name(${options.toString()} ${children.mkString(", ")})"
 }
 
 /**
