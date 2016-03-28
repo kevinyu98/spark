@@ -1751,7 +1751,7 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
   }
   test("SPARK-trim") {
     withTable("trimTb") {
-      Seq(("one  ", 1),("otwo", 2)).toDF("k", "v").write.saveAsTable("trimTb")
+      Seq(("one  ", 1), ("otwo", 2)).toDF("k", "v").write.saveAsTable("trimTb")
 
       checkAnswer(sql(
         """
@@ -1766,7 +1766,7 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
       checkAnswer(sql(
         """
           |SELECT trim(LEADING ' ' FROM k) FROM trimTb
-        """.stripMargin), Row("one  ") :: Row("otwo") :: Nil )
+        """.stripMargin), Row("one  ") :: Row("otwo") :: Nil)
 
       checkAnswer(sql(
         """
@@ -1778,21 +1778,21 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
           |SELECT trim(LEADING 'one' FROM k) FROM trimTb
         """.stripMargin), Row("  ") :: Row("otwo") :: Nil)
 
-    checkAnswer(sql(
-      """
-        |SELECT trim(TRAILING ' ' FROM k) FROM trimTb
-      """.stripMargin), Row("one") :: Row("otwo") :: Nil )
+      checkAnswer(sql(
+        """
+          |SELECT trim(TRAILING ' ' FROM k) FROM trimTb
+        """.stripMargin), Row("one") :: Row("otwo") :: Nil)
 
-    checkAnswer(sql(
-      """
-        |SELECT trim(TRAILING 'o' FROM k) FROM trimTb
-      """.stripMargin), Row("one  ") :: Row("otw") :: Nil)
+      checkAnswer(sql(
+        """
+          |SELECT trim(TRAILING 'o' FROM k) FROM trimTb
+        """.stripMargin), Row("one  ") :: Row("otw") :: Nil)
 
-    checkAnswer(sql(
-      """
-        |SELECT trim(TRAILING 'wo' FROM k) FROM trimTb
-      """.stripMargin), Row("one  ") :: Row("ot") :: Nil)
-  }
+      checkAnswer(sql(
+        """
+          |SELECT trim(TRAILING 'wo' FROM k) FROM trimTb
+        """.stripMargin), Row("one  ") :: Row("ot") :: Nil)
+    }
 
   }
 }

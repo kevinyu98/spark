@@ -362,11 +362,12 @@ case class StringTrim(child: Expression)
 /**
  * A function that trim the spaces or char from both ends for the specified string.
  */
-case class StringTrimBoth(left: Expression, right: Expression )
-  extends BinaryExpression with ImplicitCastInputTypes  {
+case class StringTrimBoth(left: Expression, right: Expression)
+  extends BinaryExpression with ImplicitCastInputTypes {
 
 
   override def dataType: DataType = StringType
+
   override def inputTypes: Seq[DataType] = Seq(StringType, StringType)
 
   override def nullSafeEval(trimStr: Any, targetStr: Any): Any = {
@@ -378,7 +379,7 @@ case class StringTrimBoth(left: Expression, right: Expression )
   override def prettyName: String = "trimBoth"
 
   override def genCode(ctx: CodegenContext, ev: ExprCode): String = {
-    defineCodeGen(ctx, ev, (c, targetStr)=> s"($targetStr).trimOptBoth($c)")
+    defineCodeGen(ctx, ev, (c, targetStr) => s"($targetStr).trimOptBoth($c)")
   }
 
   override def sql: String = {
@@ -391,11 +392,12 @@ case class StringTrimBoth(left: Expression, right: Expression )
 /**
  * A function that trim the spaces or char from both ends for the specified string.
  */
-case class StringTrimLead(left: Expression, right: Expression )
-  extends BinaryExpression with ImplicitCastInputTypes  {
+case class StringTrimLead(left: Expression, right: Expression)
+  extends BinaryExpression with ImplicitCastInputTypes {
 
 
   override def dataType: DataType = StringType
+
   override def inputTypes: Seq[DataType] = Seq(StringType, StringType)
 
   override def nullSafeEval(trimStr: Any, targetStr: Any): Any = {
@@ -407,7 +409,7 @@ case class StringTrimLead(left: Expression, right: Expression )
   override def prettyName: String = "trimLeading"
 
   override def genCode(ctx: CodegenContext, ev: ExprCode): String = {
-    defineCodeGen(ctx, ev, (c, targetStr)=> s"($targetStr).trimOptLead($c)")
+    defineCodeGen(ctx, ev, (c, targetStr) => s"($targetStr).trimOptLead($c)")
   }
 
   override def sql: String = {
@@ -421,11 +423,12 @@ case class StringTrimLead(left: Expression, right: Expression )
 /**
  * A function that trim the spaces or char from right ends for the specified string.
  */
-case class StringTrimTrail(left: Expression, right: Expression )
-  extends BinaryExpression with ImplicitCastInputTypes  {
+case class StringTrimTrail(left: Expression, right: Expression)
+  extends BinaryExpression with ImplicitCastInputTypes {
 
 
   override def dataType: DataType = StringType
+
   override def inputTypes: Seq[DataType] = Seq(StringType, StringType)
 
   override def nullSafeEval(trimStr: Any, targetStr: Any): Any = {
@@ -437,7 +440,7 @@ case class StringTrimTrail(left: Expression, right: Expression )
   override def prettyName: String = "trimTrailing"
 
   override def genCode(ctx: CodegenContext, ev: ExprCode): String = {
-    defineCodeGen(ctx, ev, (c, targetStr)=> s"($targetStr).trimOptTrail($c)")
+    defineCodeGen(ctx, ev, (c, targetStr) => s"($targetStr).trimOptTrail($c)")
   }
 
   override def sql: String = {
