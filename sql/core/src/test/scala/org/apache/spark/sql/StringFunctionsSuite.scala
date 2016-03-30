@@ -144,6 +144,7 @@ class StringFunctionsSuite extends QueryTest with SharedSQLContext {
       Row("example  ", "  example", "example"))
   }
 
+
   test("string formatString function") {
     val df = Seq(("aa%d%s", 123, "cc")).toDF("a", "b", "c")
 
