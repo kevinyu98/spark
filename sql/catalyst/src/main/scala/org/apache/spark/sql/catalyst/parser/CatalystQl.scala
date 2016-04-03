@@ -719,9 +719,6 @@ https://cwiki.apache.org/confluence/display/Hive/Enhanced+Aggregation%2C+Cube%2C
     /* UDFs - Must be last otherwise will preempt built in functions */
     case Token("TOK_FUNCTION", Token(name, Nil) :: args) =>
       UnresolvedFunction(name, args.map(nodeToExpr), isDistinct = false)
-   // case Token("TOK_FUNCTION", Token(name, Nil) :: args ) =>
-   //   UnresolvedFunction(name, args.map(nodeToExpr), args.)
-
 
     // Aggregate function with DISTINCT keyword.
     case Token("TOK_FUNCTIONDI", Token(name, Nil) :: args) =>
