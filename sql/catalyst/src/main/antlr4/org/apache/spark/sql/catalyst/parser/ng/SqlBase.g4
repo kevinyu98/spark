@@ -356,6 +356,15 @@ setQuantifier
     | ALL
     ;
 
+setTrimOpt
+    : LEADING
+    | TRAILING
+    | BOTH
+    ;
+
+setTrimFrom
+    : FROM
+    ;
 relation
     : left=relation
       ((CROSS | joinType) JOIN right=relation joinCriteria?
@@ -486,6 +495,7 @@ primaryExpression
     | qualifiedName '.' ASTERISK                                                               #star
     | '(' expression (',' expression)+ ')'                                                     #rowConstructor
     | qualifiedName '(' (setQuantifier? expression (',' expression)*)? ')' (OVER windowSpec)?  #functionCall
+    | qualifiedName '(' setTrimOpt trimChar=expression setTrimFrom expression ')' (OVER windowSpec)?   #functionCall
     | '(' query ')'                                                                            #subqueryExpression
     | CASE valueExpression whenClause+ (ELSE elseExpression=expression)? END                   #simpleCase
     | CASE whenClause+ (ELSE elseExpression=expression)? END                                   #searchedCase
@@ -752,6 +762,9 @@ SNAPSHOT: 'SNAPSHOT';
 READ: 'READ';
 WRITE: 'WRITE';
 ONLY: 'ONLY';
+BOTH: 'BOTH';
+LEADING: 'LEADING';
+TRAILING: 'TRAILING';
 
 IF: 'IF';
 

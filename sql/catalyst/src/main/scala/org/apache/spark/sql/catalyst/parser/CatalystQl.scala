@@ -722,18 +722,6 @@ https://cwiki.apache.org/confluence/display/Hive/Enhanced+Aggregation%2C+Cube%2C
    // case Token("TOK_FUNCTION", Token(name, Nil) :: args ) =>
    //   UnresolvedFunction(name, args.map(nodeToExpr), args.)
 
-    // Aggregate function with BOTH/LEADING/TRAILING FROM keyword.
-    case Token("TOK_FUNCTIONTRBOTH", Token(name, Nil) :: Token(trimChar, Nil) :: args) =>
-      val trimString = Literal(ParseUtils.unescapeSQLString(trimChar))
-      UnresolvedFunction("trimBoth", trimString :: args.map(nodeToExpr), isDistinct = false)
-    // Aggregate function with LEADING FROM keyword.
-    case Token("TOK_FUNCTIONTRLEAD", Token(name, Nil) :: Token(trimChar, Nil) :: args) =>
-      val trimString = Literal(ParseUtils.unescapeSQLString(trimChar))
-      UnresolvedFunction("trimLead", trimString :: args.map(nodeToExpr), isDistinct = false)
-    // Aggregate function with TRAILING FROM keyword.
-    case Token("TOK_FUNCTIONTRTRAIL", Token(name, Nil) :: Token(trimChar, Nil) :: args) =>
-      val trimString = Literal(ParseUtils.unescapeSQLString(trimChar))
-      UnresolvedFunction("trimTrail", trimString :: args.map(nodeToExpr), isDistinct = false)
 
     // Aggregate function with DISTINCT keyword.
     case Token("TOK_FUNCTIONDI", Token(name, Nil) :: args) =>

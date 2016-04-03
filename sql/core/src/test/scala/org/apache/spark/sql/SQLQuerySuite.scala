@@ -2381,16 +2381,13 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
   test("TRIM function") {
 
     checkAnswer(
-      sql("SELECT TRIM( LEADING ' ' FROM '  bc  ' )"), Row("bc  ") :: Nil)
+      sql("SELECT TRIM('  bc  ' )"), Row("bc") :: Nil)
 
     checkAnswer(
       sql("SELECT TRIM( LEADING ' ' FROM '  bc  ' )"), Row("bc  ") :: Nil)
 
     checkAnswer(
       sql("SELECT TRIM( LEADING 'b' FROM 'bca  ' )"), Row("ca  ") :: Nil)
-
-    checkAnswer(
-      sql("SELECT TRIM( LEADING 'aa' FROM 'aabcaa' )"), Row("bcaa") :: Nil)
 
 
     checkAnswer(
@@ -2410,10 +2407,6 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
       sql("SELECT trim(LEADING 'o' FROM k) FROM trimTb"),
       Row("ne") :: Nil)
 
-    Seq(("oneo", 1)).toDF("k", "v").registerTempTable("trimTb")
-    checkAnswer(
-      sql("SELECT trim(LEADING 'on' FROM k) FROM trimTb"),
-      Row("eo") :: Nil)
 
     checkAnswer(
       sql("SELECT TRIM( TRAILING ' ' FROM '  bc  ' )"), Row("  bc") :: Nil)
@@ -2423,9 +2416,6 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
 
     checkAnswer(
       sql("SELECT TRIM( TRAILING 'a' FROM 'bca' )"), Row("bc") :: Nil)
-
-    checkAnswer(
-      sql("SELECT TRIM( TRAILING 'aa' FROM 'aabcaa' )"), Row("aabc") :: Nil)
 
 
     checkAnswer(
@@ -2449,30 +2439,16 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
       sql("SELECT trim(TRAILING 'e' FROM k) FROM trimTb"),
       Row("on") :: Nil)
 
-    Seq(("oneo", 1)).toDF("k", "v").registerTempTable("trimTb")
-    checkAnswer(
-      sql("SELECT trim(TRAILING 'eo' FROM k) FROM trimTb"),
-      Row("on") :: Nil)
-
     checkAnswer(
       sql("SELECT TRIM( TRAILING ' ' FROM '  bc  ' )"), Row("  bc") :: Nil)
 
     checkAnswer(
       sql("SELECT TRIM( TRAILING 'c' FROM 'abc' )"), Row("ab") :: Nil)
 
-    Seq(("oneo", 1)).toDF("k", "v").registerTempTable("trimTb")
-    checkAnswer(
-      sql("SELECT trim(TRAILING 'eo' FROM k) FROM trimTb"),
-      Row("on") :: Nil)
 
     checkAnswer(
       sql("SELECT TRIM( BOTH ' ' FROM '  bc  ' )"), Row("bc") :: Nil)
 
-    checkAnswer(
-      sql("SELECT TRIM( BOTH '  ' FROM ' bca  ' )"), Row(" bca") :: Nil)
-
-    checkAnswer(
-      sql("SELECT TRIM( BOTH 'aa' FROM 'aabcaa' )"), Row("bc") :: Nil)
 
     checkAnswer(
       sql("SELECT TRIM( BOTH 'a' FROM 'abc' )"), Row("bc") :: Nil)
@@ -2496,16 +2472,6 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
     checkAnswer(
       sql("SELECT trim(BOTH 'o' FROM k) FROM trimTb"),
       Row("ne") :: Nil)
-
-    Seq(("oneo", 1)).toDF("k", "v").registerTempTable("trimTb")
-    checkAnswer(
-      sql("SELECT trim(BOTH 'on' FROM k) FROM trimTb"),
-      Row("eo") :: Nil)
-
-    Seq(("oneo", 1)).toDF("k", "v").registerTempTable("trimTb")
-    checkAnswer(
-      sql("SELECT trim(BOTH 'eo' FROM k) FROM trimTb"),
-      Row("on") :: Nil)
 
     Seq((" one", 1)).toDF("k", "v").registerTempTable("trimTb")
     checkAnswer(

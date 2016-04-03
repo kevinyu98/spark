@@ -1838,11 +1838,6 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
 
       checkAnswer(sql(
         """
-          |SELECT trim(LEADING 'one' FROM k) FROM trimTb
-        """.stripMargin), Row("  ") :: Row("otwo") :: Nil)
-
-      checkAnswer(sql(
-        """
           |SELECT trim(TRAILING ' ' FROM k) FROM trimTb
         """.stripMargin), Row("one") :: Row("otwo") :: Nil)
 
@@ -1851,10 +1846,6 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
           |SELECT trim(TRAILING 'o' FROM k) FROM trimTb
         """.stripMargin), Row("one  ") :: Row("otw") :: Nil)
 
-      checkAnswer(sql(
-        """
-          |SELECT trim(TRAILING 'wo' FROM k) FROM trimTb
-        """.stripMargin), Row("one  ") :: Row("ot") :: Nil)
     }
 
   }

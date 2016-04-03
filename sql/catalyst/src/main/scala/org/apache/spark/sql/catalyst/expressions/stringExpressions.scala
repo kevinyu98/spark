@@ -390,7 +390,7 @@ case class StringTrimBoth(left: Expression, right: Expression)
 }
 
 /**
- * A function that trim the spaces or char from both ends for the specified string.
+ * A function that trim the spaces or char from left end for the specified string.
  */
 case class StringTrimLead(left: Expression, right: Expression)
   extends BinaryExpression with ImplicitCastInputTypes {
@@ -421,7 +421,7 @@ case class StringTrimLead(left: Expression, right: Expression)
 }
 
 /**
- * A function that trim the spaces or char from right ends for the specified string.
+ * A function that trim the spaces or char from right end for the specified string.
  */
 case class StringTrimTrail(left: Expression, right: Expression)
   extends BinaryExpression with ImplicitCastInputTypes {
