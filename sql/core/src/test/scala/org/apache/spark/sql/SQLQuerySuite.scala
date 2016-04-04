@@ -37,7 +37,6 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
 
   setupTestData()
 
-
   test("having clause") {
     Seq(("one", 1), ("two", 2), ("three", 3), ("one", 5)).toDF("k", "v").registerTempTable("hav")
     checkAnswer(
