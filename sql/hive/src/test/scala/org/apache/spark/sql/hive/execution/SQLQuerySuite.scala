@@ -1685,18 +1685,18 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
         |FROM (SELECT key, key%2, key - 5 FROM src) t GROUP BY key%5, key-5
         |WITH CUBE ORDER BY cnt, k1, k2, k3 LIMIT 10
       """.stripMargin),
-     Seq(
-       (1, null, -3, 2),
-       (1, null, -1, 2),
-       (1, null, 3, 2),
-       (1, null, 4, 2),
-       (1, null, 5, 2),
-       (1, null, 6, 2),
-       (1, null, 12, 2),
-       (1, null, 14, 2),
-       (1, null, 15, 2),
-       (1, null, 22, 2)
-     ).map(i => Row(i._1, i._2, i._3, i._4)))
+    Seq(
+      (1, null, -3, 2),
+      (1, null, -1, 2),
+      (1, null, 3, 2),
+      (1, null, 4, 2),
+      (1, null, 5, 2),
+      (1, null, 6, 2),
+      (1, null, 12, 2),
+      (1, null, 14, 2),
+      (1, null, 15, 2),
+      (1, null, 22, 2)
+    ).map(i => Row(i._1, i._2, i._3, i._4)))
   }
 
   test("SPARK-8976 Wrong Result for GroupingSet") {
