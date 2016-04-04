@@ -1030,23 +1030,19 @@ class AstBuilder extends SqlBaseBaseVisitor[AnyRef] with Logging {
    */
   override def visitFunctionCall(ctx: FunctionCallContext): Expression = withOrigin(ctx) {
     // Create the function call.
-
     val isDistinct = Option(ctx.setQuantifier()).exists(_.DISTINCT != null)
     val name = (ctx.qualifiedName.getText.toLowerCase,
-                ctx.operator.getType,
+                Option(ctx.operator.getType),
                 Option(ctx.trimChar)) match {
       case (u, None, None) => ctx.qualifiedName.getText
       case (u, s, _) if (!u.equals("trim") ) =>
         throw new ParseException(s"Function $u doesn't support this $s keyword.", ctx)
       case (u, _, Some(t)) if (u.equals("trim")) && (string(t).size > 1) =>
         throw new ParseException(s"trim Character length great than 1 ${t.getText}.", ctx)
-      case (u, s, _) if (SqlBaseParser.BOTH != null) =>
-        "trimBoth"
-      case (u, s, _) if (SqlBaseParser.LEADING != null) =>
-        "trimLead"
-      case (u, s, _) if (SqlBaseParser.TRAILING != null) =>
-        "trimTrail"
-      }
+      case (u, s, _) if (s == SqlBaseParser.BOTH) => "trimBoth"
+      case (u, s, _) if (s == SqlBaseParser.LEADING) => "trimLead"
+      case (u, s, _) if (s == SqlBaseParser.TRAILING) => "trimTrail"
+    }
 
     val arguments = ctx.expression().asScala.map(expression) match {
       case Seq(UnresolvedStar(None)) if name.toLowerCase == "count" && !isDistinct =>

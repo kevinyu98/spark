@@ -364,7 +364,6 @@ setQuantifier
     | ALL
     ;
 
-
 relation
     : left=relation
       ((CROSS | joinType) JOIN right=relation joinCriteria?
