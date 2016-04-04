@@ -63,6 +63,7 @@ case class WindowData(
  * valid, but Hive currently cannot execute it.
  */
 class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
+
   import hiveContext._
   import hiveContext.implicits._
 
@@ -299,14 +300,14 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
           if (!isDataSourceParquet) {
             fail(
               s"${classOf[MetastoreRelation].getCanonicalName} is expected, but found " +
-              s"${HadoopFsRelation.getClass.getCanonicalName}.")
+                s"${HadoopFsRelation.getClass.getCanonicalName}.")
           }
 
         case r: MetastoreRelation =>
           if (isDataSourceParquet) {
             fail(
               s"${HadoopFsRelation.getClass.getCanonicalName} is expected, but found " +
-              s"${classOf[MetastoreRelation].getCanonicalName}.")
+                s"${classOf[MetastoreRelation].getCanonicalName}.")
           }
       }
     }
@@ -333,15 +334,15 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
       assert(
         message.contains("Cannot specify database name in a CTAS statement"),
         "When spark.sql.hive.convertCTAS is true, we should not allow " +
-            "database name specified.")
+          "database name specified.")
 
       sql("CREATE TABLE ctas1 stored as textfile" +
-          " AS SELECT key k, value FROM src ORDER BY k, value")
+        " AS SELECT key k, value FROM src ORDER BY k, value")
       checkRelation("ctas1", true)
       sql("DROP TABLE ctas1")
 
       sql("CREATE TABLE ctas1 stored as sequencefile" +
-            " AS SELECT key k, value FROM src ORDER BY k, value")
+        " AS SELECT key k, value FROM src ORDER BY k, value")
       checkRelation("ctas1", true)
       sql("DROP TABLE ctas1")
 
@@ -495,7 +496,8 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
   test("ordering not in agg") {
     checkAnswer(
       sql("SELECT key FROM src GROUP BY key, value ORDER BY value"),
-      sql("""
+      sql(
+        """
         SELECT key
         FROM (
           SELECT key, value
@@ -762,7 +764,8 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
     val data = (1 to 5).map { i => (i, i) }
     data.toDF("key", "value").registerTempTable("test")
     checkAnswer(
-      sql("""FROM
+      sql(
+        """FROM
           |(FROM test SELECT TRANSFORM(key, value) USING 'cat' AS (`thing1` int, thing2 string)) t
           |SELECT thing1 + 1
         """.stripMargin), (2 to 6).map(i => Row(i)))
@@ -816,12 +819,12 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
           |from windowData group by month, area
         """.stripMargin),
       Seq(
-        ("a", 5, 5d/11),
-        ("a", 6, 6d/11),
-        ("b", 7, 7d/15),
-        ("b", 8, 8d/15),
-        ("c", 10, 10d/19),
-        ("c", 9, 9d/19)
+        ("a", 5, 5d / 11),
+        ("a", 6, 6d / 11),
+        ("b", 7, 7d / 15),
+        ("b", 8, 8d / 15),
+        ("c", 10, 10d / 19),
+        ("c", 9, 9d / 19)
       ).map(i => Row(i._1, i._2, i._3)))
 
     checkAnswer(
@@ -831,12 +834,12 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
           |from windowData group by month, area
         """.stripMargin),
       Seq(
-        ("a", 5, 5d/9),
-        ("a", 6, 6d/9),
-        ("b", 7, 7d/13),
-        ("b", 8, 8d/13),
-        ("c", 10, 10d/17),
-        ("c", 9, 9d/17)
+        ("a", 5, 5d / 9),
+        ("a", 6, 6d / 9),
+        ("b", 7, 7d / 13),
+        ("b", 8, 8d / 13),
+        ("c", 10, 10d / 17),
+        ("c", 9, 9d / 17)
       ).map(i => Row(i._1, i._2, i._3)))
   }
 
@@ -1025,7 +1028,7 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
 
     checkAnswer(
       sql(
-      """
+        """
         |select area, rank() over (partition by area order by month) as c1
         |from windowData group by product, area, month order by product, area
       """.stripMargin),
@@ -1684,11 +1687,13 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
         |SELECT count(*) AS cnt, key % 5 AS k1, key-5 AS k2, grouping_id() AS k3
         |FROM (SELECT key, key%2, key - 5 FROM src) t GROUP BY key%5, key-5
         |WITH CUBE ORDER BY cnt, k1, k2, k3 LIMIT 10
-      """.stripMargin),
+      """.
+        stripMargin),
     Seq(
       (1, null, -3, 2),
       (1, null, -1, 2),
-      (1, null, 3, 2),
+      (1
+        , null, 3, 2),
       (1, null, 4, 2),
       (1, null, 5, 2),
       (1, null, 6, 2),
@@ -1705,16 +1710,19 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
         |SELECT count(*) AS cnt, key % 5 AS k1, key-5 AS k2, grouping_id() AS k3
         |FROM (SELECT key, key%2, key - 5 FROM src) t GROUP BY key%5, key-5
         |GROUPING SETS (key%5, key-5) ORDER BY cnt, k1, k2, k3 LIMIT 10
-      """.stripMargin),
-    Seq(
+      """.
+        stripMargin),
+      Seq(
       (1, null, -3, 2),
-      (1, null, -1, 2),
-      (1, null, 3, 2),
+      (1, null, -1
+        , 2),
+      (1,
+        null, 3, 2),
       (1, null, 4, 2),
       (1, null, 5, 2),
       (1, null, 6, 2),
-      (1, null, 12, 2),
-      (1, null, 14, 2),
+        (1, null, 12, 2),
+        (1, null, 14, 2),
       (1, null, 15, 2),
       (1, null, 22, 2)
     ).map(i => Row(i._1, i._2, i._3, i._4)))
@@ -1831,6 +1839,42 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
         sql("SHOW TABLES").count() >= 2)
       assert(
         sql("SHOW TABLES IN default").count() >= 2)
+    }
+  }
+  test("SPARK-trim") {
+    withTable("trimTb") {
+      Seq(("one  ", 1), ("otwo", 2)).toDF("k", "v").write.saveAsTable("trimTb")
+
+      checkAnswer(sql(
+        """
+          |SELECT trim(BOTH ' ' FROM k) FROM trimTb
+        """.stripMargin), Row("one") :: Row("otwo") :: Nil)
+
+      checkAnswer(sql(
+        """
+          |SELECT trim(BOTH 'o' FROM k) FROM trimTb
+        """.stripMargin), Row("ne  ") :: Row("tw") :: Nil)
+
+      checkAnswer(sql(
+        """
+          |SELECT trim(LEADING ' ' FROM k) FROM trimTb
+        """.stripMargin), Row("one  ") :: Row("otwo") :: Nil)
+
+      checkAnswer(sql(
+        """
+          |SELECT trim(LEADING 'o' FROM k) FROM trimTb
+        """.stripMargin), Row("ne  ") :: Row("two") :: Nil)
+
+      checkAnswer(sql(
+        """
+          |SELECT trim(TRAILING ' ' FROM k) FROM trimTb
+        """.stripMargin), Row("one") :: Row("otwo") :: Nil)
+
+      checkAnswer(sql(
+        """
+          |SELECT trim(TRAILING 'o' FROM k) FROM trimTb
+        """.stripMargin), Row("one  ") :: Row("otw") :: Nil)
+
     }
   }
 }

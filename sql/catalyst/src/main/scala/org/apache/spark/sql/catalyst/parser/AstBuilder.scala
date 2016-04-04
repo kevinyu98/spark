@@ -1030,8 +1030,24 @@ class AstBuilder extends SqlBaseBaseVisitor[AnyRef] with Logging {
    */
   override def visitFunctionCall(ctx: FunctionCallContext): Expression = withOrigin(ctx) {
     // Create the function call.
-    val name = ctx.qualifiedName.getText
+
     val isDistinct = Option(ctx.setQuantifier()).exists(_.DISTINCT != null)
+    val name = (ctx.qualifiedName.getText.toLowerCase,
+                Option(ctx.setTrimOpt()),
+                Option(ctx.trimChar)) match {
+      case (u, None, None) => ctx.qualifiedName.getText
+      case (u, Some(s), _) if (!u.equals("trim") ) =>
+        throw new ParseException(s"Function $u doesn't support this $s keyword.", ctx)
+      case (u, _, Some(t)) if (u.equals("trim")) && (string(t).size > 1) =>
+        throw new ParseException(s"trim Character length great than 1 ${t.getText}.", ctx)
+      case (u, Some(s), _) if (s.BOTH != null) =>
+        "trimBoth"
+      case (u, Some(s), _) if (s.LEADING != null) =>
+        "trimLead"
+      case (u, Some(s), _) if (s.TRAILING != null) =>
+        "trimTrail"
+      }
+
     val arguments = ctx.expression().asScala.map(expression) match {
       case Seq(UnresolvedStar(None)) if name.toLowerCase == "count" && !isDistinct =>
         // Transform COUNT(*) into COUNT(1). Move this to analysis?

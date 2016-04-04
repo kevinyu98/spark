@@ -467,6 +467,25 @@ class StringExpressionsSuite extends SparkFunSuite with ExpressionEvalHelper {
     checkEvaluation(StringTrimRight(Literal.create(null, StringType)), null)
   }
 
+  test("TRIM with BOTH/LEADING/TRAILING") {
+    val s = 'a.string.at(0)
+    checkEvaluation(StringTrimBoth(Literal(" "), Literal(" aa  ")), "aa", create_row(" abdef "))
+    checkEvaluation(StringTrimBoth("a", s), "bdef", create_row("abdefa"))
+
+    checkEvaluation(StringTrimLead(Literal(" "), Literal(" aa  ")), "aa  ", create_row(" abdef "))
+    checkEvaluation(StringTrimLead("a", s), "bdef ", create_row("abdef "))
+
+    checkEvaluation(StringTrimTrail(Literal(" "), Literal(" aa  ")), " aa", create_row(" abdef "))
+    checkEvaluation(StringTrimTrail("f", s), " abde", create_row(" abdef"))
+
+    // scalastyle:off
+    // non ascii characters are not allowed in the source code, so we disable the scalastyle.
+    checkEvaluation(StringTrimTrail(" ", s), "  花花世界", create_row("  花花世界 "))
+    checkEvaluation(StringTrimLead(" ", s), "花花世界 ", create_row("  花花世界 "))
+    checkEvaluation(StringTrimBoth(" ", s), "花花世界", create_row("  花花世界 "))
+     }
+
+
   test("FORMAT") {
     checkEvaluation(FormatString(Literal("aa%d%s"), Literal(123), Literal("a")), "aa123a")
     checkEvaluation(FormatString(Literal("aa")), "aa", create_row(null))
