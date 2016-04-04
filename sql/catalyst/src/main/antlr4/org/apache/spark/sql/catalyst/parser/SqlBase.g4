@@ -364,12 +364,6 @@ setQuantifier
     | ALL
     ;
 
-setTrimOpt
-    : LEADING
-    | TRAILING
-    | BOTH
-    ;
-
 
 relation
     : left=relation
@@ -501,7 +495,7 @@ primaryExpression
     | qualifiedName '.' ASTERISK                                                               #star
     | '(' expression (',' expression)+ ')'                                                     #rowConstructor
     | qualifiedName '(' (setQuantifier? expression (',' expression)*)? ')' (OVER windowSpec)?  #functionCall
-    | qualifiedName '(' (LEADING | TRAILING | BOTH) trimChar=expression FROM expression ')'
+    | qualifiedName '(' operator=(LEADING | TRAILING | BOTH) trimChar=expression FROM expression ')'
       (OVER windowSpec)?                                                                       #functionCall
     | '(' query ')'                                                                            #subqueryExpression
     | CASE valueExpression whenClause+ (ELSE elseExpression=expression)? END                   #simpleCase

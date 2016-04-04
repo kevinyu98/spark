@@ -1833,7 +1833,7 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
         sql("SHOW TABLES IN default").count() >= 2)
     }
   }
-  test("SPARK-trim") {
+  test("SPARK-trimBOth") {
     withTable("trimTb") {
       Seq(("one  ", 1), ("otwo", 2)).toDF("k", "v").write.saveAsTable("trimTb")
 
@@ -1847,15 +1847,28 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
           |SELECT trim(BOTH 'o' FROM k) FROM trimTb
         """.stripMargin), Row("ne  ") :: Row("tw") :: Nil)
 
-      checkAnswer(sql(
-        """
-          |SELECT trim(LEADING ' ' FROM k) FROM trimTb
-        """.stripMargin), Row("one  ") :: Row("otwo") :: Nil)
+    }
+  }
+
+  test("SPARK-trimLeading") {
+    withTable("trimTb") {
+      Seq(("one  ", 1), ("otwo", 2)).toDF("k", "v").write.saveAsTable("trimTb")
 
       checkAnswer(sql(
         """
           |SELECT trim(LEADING 'o' FROM k) FROM trimTb
         """.stripMargin), Row("ne  ") :: Row("two") :: Nil)
+
+      checkAnswer(sql(
+        """
+          |SELECT trim(LEADING ' ' FROM k) FROM trimTb
+        """.stripMargin), Row("one  ") :: Row("otwo") :: Nil)
+    }
+  }
+
+  test("SPARK-trimTrailing") {
+    withTable("trimTb") {
+      Seq(("one  ", 1), ("otwo", 2)).toDF("k", "v").write.saveAsTable("trimTb")
 
       checkAnswer(sql(
         """

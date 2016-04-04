@@ -2377,119 +2377,86 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
     }
   }
 
-  test("TRIM function") {
-
+  test("TRIM function-Leading") {
     checkAnswer(
       sql("SELECT TRIM('  bc  ' )"), Row("bc") :: Nil)
-
     checkAnswer(
       sql("SELECT TRIM( LEADING ' ' FROM '  bc  ' )"), Row("bc  ") :: Nil)
-
     checkAnswer(
       sql("SELECT TRIM( LEADING 'b' FROM 'bca  ' )"), Row("ca  ") :: Nil)
-
-
     checkAnswer(
       sql("SELECT TRIM( LEADING 'a' FROM 'abca' )"), Row("bca") :: Nil)
-
     checkAnswer(
       sql("SELECT TRIM( LEADING 'a' FROM ' abca' )"), Row(" abca") :: Nil)
-
-
     Seq(("  one", 1)).toDF("k", "v").registerTempTable("trimTb")
     checkAnswer(
       sql("SELECT trim(LEADING ' ' FROM k) FROM trimTb"),
       Row("one") :: Nil)
-
     Seq(("one", 1)).toDF("k", "v").registerTempTable("trimTb")
     checkAnswer(
       sql("SELECT trim(LEADING 'o' FROM k) FROM trimTb"),
       Row("ne") :: Nil)
+  }
 
-
+  test("TRIM function-Trailing") {
     checkAnswer(
       sql("SELECT TRIM( TRAILING ' ' FROM '  bc  ' )"), Row("  bc") :: Nil)
-
-    checkAnswer(
+  checkAnswer(
       sql("SELECT TRIM( TRAILING ' ' FROM '  bc ' )"), Row("  bc") :: Nil)
-
     checkAnswer(
       sql("SELECT TRIM( TRAILING 'a' FROM 'bca' )"), Row("bc") :: Nil)
-
-
     checkAnswer(
       sql("SELECT TRIM( TRAILING 'a' FROM 'abca ' )"), Row("abca ") :: Nil)
-
     checkAnswer(
       sql("SELECT TRIM( TRAILING 'e' FROM 'abcdeeeeeeeeee' )"), Row("abcdeeeeeeeee") :: Nil)
-
-
     Seq(("  one ", 1)).toDF("k", "v").registerTempTable("trimTb")
     checkAnswer(
       sql("SELECT trim(TRAILING ' ' FROM k) FROM trimTb"),
       Row("  one") :: Nil)
-
-
     Seq((" one ", 1)).toDF("k", "v").registerTempTable("trimTb")
     checkAnswer(
       sql("SELECT trim(TRAILING ' ' FROM k) FROM trimTb"),
       Row(" one") :: Nil)
-
-
     Seq(("one", 1)).toDF("k", "v").registerTempTable("trimTb")
     checkAnswer(
       sql("SELECT trim(TRAILING 'e' FROM k) FROM trimTb"),
       Row("on") :: Nil)
-
     checkAnswer(
       sql("SELECT TRIM( TRAILING ' ' FROM '  bc  ' )"), Row("  bc") :: Nil)
-
     checkAnswer(
       sql("SELECT TRIM( TRAILING 'c' FROM 'abc' )"), Row("ab") :: Nil)
+  }
 
-
+  test("TRIM function-BOTH") {
     checkAnswer(
       sql("SELECT TRIM( BOTH ' ' FROM '  bc  ' )"), Row("bc") :: Nil)
-
-
     checkAnswer(
       sql("SELECT TRIM( BOTH 'a' FROM 'abc' )"), Row("bc") :: Nil)
-
-
     checkAnswer(
       sql("SELECT TRIM( BOTH 'a' FROM 'abca' )"), Row("bc") :: Nil)
-
-
     Seq(("one", 1)).toDF("k", "v").registerTempTable("trimTb")
     checkAnswer(
       sql("SELECT trim(BOTH 'o' FROM k) FROM trimTb"),
       Row("ne") :: Nil)
-
     Seq(("oneo", 1)).toDF("k", "v").registerTempTable("trimTb")
     checkAnswer(
       sql("SELECT trim(BOTH 'o' FROM k) FROM trimTb"),
       Row("ne") :: Nil)
-
     Seq(("oneo", 1)).toDF("k", "v").registerTempTable("trimTb")
     checkAnswer(
       sql("SELECT trim(BOTH 'o' FROM k) FROM trimTb"),
       Row("ne") :: Nil)
-
     Seq((" one", 1)).toDF("k", "v").registerTempTable("trimTb")
     checkAnswer(
       sql("SELECT trim(BOTH ' ' FROM k) FROM trimTb"),
       Row("one") :: Nil)
-
     Seq((" one ", 1)).toDF("k", "v").registerTempTable("trimTb")
     checkAnswer(
       sql("SELECT trim(BOTH ' ' FROM k) FROM trimTb"),
       Row("one") :: Nil)
-
     Seq((" one  ", 1)).toDF("k", "v").registerTempTable("trimTb")
     checkAnswer(
       sql("SELECT trim(BOTH ' ' FROM k) FROM trimTb"),
       Row("one") :: Nil)
-
   }
-
 }

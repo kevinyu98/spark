@@ -1033,18 +1033,18 @@ class AstBuilder extends SqlBaseBaseVisitor[AnyRef] with Logging {
 
     val isDistinct = Option(ctx.setQuantifier()).exists(_.DISTINCT != null)
     val name = (ctx.qualifiedName.getText.toLowerCase,
-                Option(ctx.setTrimOpt()),
+                ctx.operator.getType,
                 Option(ctx.trimChar)) match {
       case (u, None, None) => ctx.qualifiedName.getText
-      case (u, Some(s), _) if (!u.equals("trim") ) =>
+      case (u, s, _) if (!u.equals("trim") ) =>
         throw new ParseException(s"Function $u doesn't support this $s keyword.", ctx)
       case (u, _, Some(t)) if (u.equals("trim")) && (string(t).size > 1) =>
         throw new ParseException(s"trim Character length great than 1 ${t.getText}.", ctx)
-      case (u, Some(s), _) if (s.BOTH != null) =>
+      case (u, s, _) if (SqlBaseParser.BOTH != null) =>
         "trimBoth"
-      case (u, Some(s), _) if (s.LEADING != null) =>
+      case (u, s, _) if (SqlBaseParser.LEADING != null) =>
         "trimLead"
-      case (u, Some(s), _) if (s.TRAILING != null) =>
+      case (u, s, _) if (SqlBaseParser.TRAILING != null) =>
         "trimTrail"
       }
 

@@ -234,43 +234,41 @@ public class UTF8StringSuite {
     assertEquals(fromString("数据砖头"), fromString("数据砖头").trimRight());
   }
 
-
   @Test
   public void trimBothchar() {
     assertEquals(fromString("hello"), fromString("  hello ").trimOptBoth(fromString(" ")));
-    assertEquals(EMPTY_UTF8, fromString("  ").trimOptBoth(fromString("  ")));
     assertEquals(fromString("数据砖头"), fromString("  数据砖头 ").trimOptBoth(fromString(" ")));
     assertEquals(fromString("据砖头 "), fromString("数据砖头 ").trimOptBoth(fromString("数")));
     assertEquals(fromString(" 数据砖"), fromString(" 数据砖头").trimOptBoth(fromString("头")));
     assertEquals(fromString("砖头"), fromString("数据砖头").trimOptBoth(fromString("数据")));
     assertEquals(fromString("数据"), fromString("数据砖头").trimOptBoth(fromString("砖头")));
     assertEquals(EMPTY_UTF8, fromString("数据砖头").trimOptBoth(fromString("数据砖头")));
+    assertEquals(EMPTY_UTF8, fromString("  ").trimOptBoth(fromString("  ")));
     assertEquals(fromString("数据砖头"), fromString("数据砖头").trimOptBoth(fromString("数据砖头头")));
-    }
-
+  }
 
   @Test
   public void trimLeadchar() {
     assertEquals(fromString("hello "), fromString("  hello ").trimOptLead(fromString(" ")));
-    assertEquals(EMPTY_UTF8, fromString("  ").trimOptLead(fromString("  ")));
     assertEquals(fromString("数据砖头 "), fromString("  数据砖头 ").trimOptLead(fromString(" ")));
     assertEquals(fromString("据砖头 "), fromString("数据砖头 ").trimOptLead(fromString("数")));
     assertEquals(fromString("据砖头"), fromString(" 数据砖头").trimOptLead(fromString(" 数")));
     assertEquals(fromString("砖头"), fromString("数据砖头").trimOptLead(fromString("数据")));
     assertEquals(fromString("数据砖头"), fromString("数据砖头").trimOptLead(fromString("数据砖头 ")));
     assertEquals(EMPTY_UTF8, fromString("数据砖头").trimOptLead(fromString("数据砖头")));
-    }
+    assertEquals(EMPTY_UTF8, fromString("  ").trimOptLead(fromString("  ")));
+  }
 
   @Test
   public void trimTrailchar() {
     assertEquals(fromString("  hello"), fromString("  hello ").trimOptTrail(fromString(" ")));
-    assertEquals(EMPTY_UTF8, fromString("  ").trimOptTrail(fromString("  ")));
     assertEquals(fromString("  数据砖头"), fromString("  数据砖头 ").trimOptTrail(fromString(" ")));
     assertEquals(fromString("数据砖"), fromString("数据砖头 ").trimOptTrail(fromString("头 ")));
     assertEquals(fromString(" 数据砖"), fromString(" 数据砖头").trimOptTrail(fromString("头")));
     assertEquals(fromString("数据砖头"), fromString("数据砖头").trimOptTrail(fromString("数据")));
     assertEquals(EMPTY_UTF8, fromString("数据砖头").trimOptTrail(fromString("数据砖头")));
-    }
+    assertEquals(EMPTY_UTF8, fromString("  ").trimOptTrail(fromString("  ")));
+  }
 
   @Test
   public void indexOf() {
