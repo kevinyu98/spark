@@ -299,14 +299,14 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
           if (!isDataSourceParquet) {
             fail(
               s"${classOf[MetastoreRelation].getCanonicalName} is expected, but found " +
-                s"${HadoopFsRelation.getClass.getCanonicalName}.")
+              s"${HadoopFsRelation.getClass.getCanonicalName}.")
           }
 
         case r: MetastoreRelation =>
           if (isDataSourceParquet) {
             fail(
               s"${HadoopFsRelation.getClass.getCanonicalName} is expected, but found " +
-                s"${classOf[MetastoreRelation].getCanonicalName}.")
+              s"${classOf[MetastoreRelation].getCanonicalName}.")
           }
       }
     }
@@ -333,7 +333,7 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
       assert(
         message.contains("Cannot specify database name in a CTAS statement"),
         "When spark.sql.hive.convertCTAS is true, we should not allow " +
-           "database name specified.")
+            "database name specified.")
 
       sql("CREATE TABLE ctas1 stored as textfile" +
           " AS SELECT key k, value FROM src ORDER BY k, value")
@@ -1010,10 +1010,10 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
 
     checkAnswer(
       sql(
-      """
+        """
           |select area, rank() over (partition by area order by tmp.month) + tmp.tmp1 as c1
           |from (select month, area, product as p, 1 as tmp1 from windowData) tmp order by p
-      """.stripMargin),
+        """.stripMargin),
       Seq(
         ("a", 2),
         ("b", 2),
@@ -1684,20 +1684,19 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
         |SELECT count(*) AS cnt, key % 5 AS k1, key-5 AS k2, grouping_id() AS k3
         |FROM (SELECT key, key%2, key - 5 FROM src) t GROUP BY key%5, key-5
         |WITH CUBE ORDER BY cnt, k1, k2, k3 LIMIT 10
-      """.
-        stripMargin),
-    Seq(
-      (1, null, -3, 2),
-      (1, null, -1, 2),
-      (1, null, 3, 2),
-      (1, null, 4, 2),
-      (1, null, 5, 2),
-      (1, null, 6, 2),
-      (1, null, 12, 2),
-      (1, null, 14, 2),
-      (1, null, 15, 2),
-      (1, null, 22, 2)
-    ).map(i => Row(i._1, i._2, i._3, i._4)))
+      """.stripMargin),
+      Seq(
+        (1, null, -3, 2),
+        (1, null, -1, 2),
+        (1, null, 3, 2),
+        (1, null, 4, 2),
+        (1, null, 5, 2),
+        (1, null, 6, 2),
+        (1, null, 12, 2),
+        (1, null, 14, 2),
+        (1, null, 15, 2),
+        (1, null, 22, 2)
+      ).map(i => Row(i._1, i._2, i._3, i._4)))
   }
 
   test("SPARK-8976 Wrong Result for GroupingSet") {
@@ -1706,8 +1705,7 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
         |SELECT count(*) AS cnt, key % 5 AS k1, key-5 AS k2, grouping_id() AS k3
         |FROM (SELECT key, key%2, key - 5 FROM src) t GROUP BY key%5, key-5
         |GROUPING SETS (key%5, key-5) ORDER BY cnt, k1, k2, k3 LIMIT 10
-      """.
-        stripMargin),
+      """.stripMargin),
       Seq(
         (1, null, -3, 2),
         (1, null, -1, 2),
