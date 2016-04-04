@@ -63,7 +63,6 @@ case class WindowData(
  * valid, but Hive currently cannot execute it.
  */
 class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
-
   import hiveContext._
   import hiveContext.implicits._
 
@@ -334,15 +333,15 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
       assert(
         message.contains("Cannot specify database name in a CTAS statement"),
         "When spark.sql.hive.convertCTAS is true, we should not allow " +
-          "database name specified.")
+           "database name specified.")
 
       sql("CREATE TABLE ctas1 stored as textfile" +
-        " AS SELECT key k, value FROM src ORDER BY k, value")
+          " AS SELECT key k, value FROM src ORDER BY k, value")
       checkRelation("ctas1", true)
       sql("DROP TABLE ctas1")
 
       sql("CREATE TABLE ctas1 stored as sequencefile" +
-        " AS SELECT key k, value FROM src ORDER BY k, value")
+            " AS SELECT key k, value FROM src ORDER BY k, value")
       checkRelation("ctas1", true)
       sql("DROP TABLE ctas1")
 
@@ -496,8 +495,7 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
   test("ordering not in agg") {
     checkAnswer(
       sql("SELECT key FROM src GROUP BY key, value ORDER BY value"),
-      sql(
-        """
+      sql("""
         SELECT key
         FROM (
           SELECT key, value
@@ -764,8 +762,7 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
     val data = (1 to 5).map { i => (i, i) }
     data.toDF("key", "value").registerTempTable("test")
     checkAnswer(
-      sql(
-        """FROM
+      sql("""FROM
           |(FROM test SELECT TRANSFORM(key, value) USING 'cat' AS (`thing1` int, thing2 string)) t
           |SELECT thing1 + 1
         """.stripMargin), (2 to 6).map(i => Row(i)))
@@ -819,12 +816,12 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
           |from windowData group by month, area
         """.stripMargin),
       Seq(
-        ("a", 5, 5d / 11),
-        ("a", 6, 6d / 11),
-        ("b", 7, 7d / 15),
-        ("b", 8, 8d / 15),
-        ("c", 10, 10d / 19),
-        ("c", 9, 9d / 19)
+        ("a", 5, 5d/11),
+        ("a", 6, 6d/11),
+        ("b", 7, 7d/15),
+        ("b", 8, 8d/15),
+        ("c", 10, 10d/19),
+        ("c", 9, 9d/19)
       ).map(i => Row(i._1, i._2, i._3)))
 
     checkAnswer(
@@ -834,12 +831,12 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
           |from windowData group by month, area
         """.stripMargin),
       Seq(
-        ("a", 5, 5d / 9),
-        ("a", 6, 6d / 9),
-        ("b", 7, 7d / 13),
-        ("b", 8, 8d / 13),
-        ("c", 10, 10d / 17),
-        ("c", 9, 9d / 17)
+        ("a", 5, 5d/9),
+        ("a", 6, 6d/9),
+        ("b", 7, 7d/13),
+        ("b", 8, 8d/13),
+        ("c", 10, 10d/17),
+        ("c", 9, 9d/17)
       ).map(i => Row(i._1, i._2, i._3)))
   }
 
@@ -1013,10 +1010,10 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
 
     checkAnswer(
       sql(
-        """
+      """
           |select area, rank() over (partition by area order by tmp.month) + tmp.tmp1 as c1
           |from (select month, area, product as p, 1 as tmp1 from windowData) tmp order by p
-        """.stripMargin),
+      """.stripMargin),
       Seq(
         ("a", 2),
         ("b", 2),
@@ -1028,7 +1025,7 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
 
     checkAnswer(
       sql(
-        """
+      """
         |select area, rank() over (partition by area order by month) as c1
         |from windowData group by product, area, month order by product, area
       """.stripMargin),
@@ -1692,8 +1689,7 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
     Seq(
       (1, null, -3, 2),
       (1, null, -1, 2),
-      (1
-        , null, 3, 2),
+      (1, null, 3, 2),
       (1, null, 4, 2),
       (1, null, 5, 2),
       (1, null, 6, 2),
@@ -1713,19 +1709,17 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
       """.
         stripMargin),
       Seq(
-      (1, null, -3, 2),
-      (1, null, -1
-        , 2),
-      (1,
-        null, 3, 2),
-      (1, null, 4, 2),
-      (1, null, 5, 2),
-      (1, null, 6, 2),
+        (1, null, -3, 2),
+        (1, null, -1, 2),
+        (1, null, 3, 2),
+        (1, null, 4, 2),
+        (1, null, 5, 2),
+        (1, null, 6, 2),
         (1, null, 12, 2),
         (1, null, 14, 2),
-      (1, null, 15, 2),
-      (1, null, 22, 2)
-    ).map(i => Row(i._1, i._2, i._3, i._4)))
+        (1, null, 15, 2),
+        (1, null, 22, 2)
+      ).map(i => Row(i._1, i._2, i._3, i._4)))
   }
 
   test("SPARK-10562: partition by column with mixed case name") {
