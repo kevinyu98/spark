@@ -365,7 +365,6 @@ case class StringTrim(child: Expression)
 case class StringTrimBoth(left: Expression, right: Expression)
   extends BinaryExpression with ImplicitCastInputTypes {
 
-
   override def dataType: DataType = StringType
 
   override def inputTypes: Seq[DataType] = Seq(StringType, StringType)
@@ -394,7 +393,6 @@ case class StringTrimBoth(left: Expression, right: Expression)
  */
 case class StringTrimLead(left: Expression, right: Expression)
   extends BinaryExpression with ImplicitCastInputTypes {
-
 
   override def dataType: DataType = StringType
 
@@ -425,7 +423,6 @@ case class StringTrimLead(left: Expression, right: Expression)
  */
 case class StringTrimTrail(left: Expression, right: Expression)
   extends BinaryExpression with ImplicitCastInputTypes {
-
 
   override def dataType: DataType = StringType
 

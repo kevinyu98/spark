@@ -236,7 +236,7 @@ public class UTF8StringSuite {
 
 
   @Test
-  public void trimBothchars() {
+  public void trimBothchar() {
     assertEquals(fromString("hello"), fromString("  hello ").trimOptBoth(fromString(" ")));
     assertEquals(EMPTY_UTF8, fromString("  ").trimOptBoth(fromString("  ")));
     assertEquals(fromString("数据砖头"), fromString("  数据砖头 ").trimOptBoth(fromString(" ")));
@@ -250,7 +250,7 @@ public class UTF8StringSuite {
 
 
   @Test
-  public void trimLeadchars() {
+  public void trimLeadchar() {
     assertEquals(fromString("hello "), fromString("  hello ").trimOptLead(fromString(" ")));
     assertEquals(EMPTY_UTF8, fromString("  ").trimOptLead(fromString("  ")));
     assertEquals(fromString("数据砖头 "), fromString("  数据砖头 ").trimOptLead(fromString(" ")));
@@ -262,7 +262,7 @@ public class UTF8StringSuite {
     }
 
   @Test
-  public void trimTrailchars() {
+  public void trimTrailchar() {
     assertEquals(fromString("  hello"), fromString("  hello ").trimOptTrail(fromString(" ")));
     assertEquals(EMPTY_UTF8, fromString("  ").trimOptTrail(fromString("  ")));
     assertEquals(fromString("  数据砖头"), fromString("  数据砖头 ").trimOptTrail(fromString(" ")));
@@ -271,6 +271,7 @@ public class UTF8StringSuite {
     assertEquals(fromString("数据砖头"), fromString("数据砖头").trimOptTrail(fromString("数据")));
     assertEquals(EMPTY_UTF8, fromString("数据砖头").trimOptTrail(fromString("数据砖头")));
     }
+
   @Test
   public void indexOf() {
     assertEquals(0, EMPTY_UTF8.indexOf(EMPTY_UTF8, 0));
