@@ -2378,14 +2378,12 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
   }
 
   test("TRIM function-Leading") {
-    checkAnswer(
-      sql("SELECT TRIM('  bc  ' )"), Row("bc") :: Nil)
-    checkAnswer(
-      sql("SELECT TRIM( LEADING ' ' FROM '  bc  ' )"), Row("bc  ") :: Nil)
-    checkAnswer(
-      sql("SELECT TRIM( LEADING 'b' FROM 'bca  ' )"), Row("ca  ") :: Nil)
-    checkAnswer(
-      sql("SELECT TRIM( LEADING 'a' FROM 'abca' )"), Row("bca") :: Nil)
+    sql("select trimBoth(' ' ' abc ')").show()
+
+    checkAnswer(sql("SELECT TRIM('  bc  ' )"), Row("bc") :: Nil)
+    checkAnswer(sql("SELECT TRIM( LEADING ' ' FROM '  bc  ' )"), Row("bc  ") :: Nil)
+    checkAnswer(sql("SELECT TRIM( LEADING 'b' FROM 'bca  ' )"), Row("ca  ") :: Nil)
+    checkAnswer(sql("SELECT TRIM( LEADING 'a' FROM 'abca' )"), Row("bca") :: Nil)
     checkAnswer(
       sql("SELECT TRIM( LEADING 'a' FROM ' abca' )"), Row(" abca") :: Nil)
     Seq(("  one", 1)).toDF("k", "v").registerTempTable("trimTb")
