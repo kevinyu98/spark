@@ -489,4 +489,23 @@ public class UTF8StringSuite {
     assertEquals(fromString("123").soundex(), fromString("123"));
     assertEquals(fromString("世界千世").soundex(), fromString("世界千世"));
   }
+  @Test
+  public void trims2() {
+    assertEquals(fromString("hell"), fromString("ohelloo").trim());
+   // assertEquals(fromString("hell"), fromString("ohelloo").trim('o'));
+    assertEquals(fromString("hello "), fromString("  hello ").trimLeft());
+    assertEquals(fromString("  hello"), fromString("  hello ").trimRight());
+
+    assertEquals(EMPTY_UTF8, fromString("  ").trim());
+    assertEquals(EMPTY_UTF8, fromString("  ").trimLeft());
+    assertEquals(EMPTY_UTF8, fromString("  ").trimRight());
+
+    assertEquals(fromString("数据砖头"), fromString("  数据砖头 ").trim());
+    assertEquals(fromString("数据砖头 "), fromString("  数据砖头 ").trimLeft());
+    assertEquals(fromString("  数据砖头"), fromString("  数据砖头 ").trimRight());
+
+    assertEquals(fromString("数据砖头"), fromString("数据砖头").trim());
+    assertEquals(fromString("数据砖头"), fromString("数据砖头").trimLeft());
+    assertEquals(fromString("数据砖头"), fromString("数据砖头").trimRight());
+  }
 }

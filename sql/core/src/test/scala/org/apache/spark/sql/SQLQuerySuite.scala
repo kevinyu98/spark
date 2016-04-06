@@ -2376,4 +2376,12 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
           Row("r3c1x", "r3c2", "t1r3c3", "r3c2", "t1r3c3") :: Nil)
     }
   }
+  test("TRIM function-BOTH") {
+    checkAnswer(
+      sql("SELECT TRIM( BOTH ' ' FROM '  bc  ' )"), Row("bc") :: Nil)
+
+    checkAnswer(
+      sql("SELECT TRIM('  bc  ' )"), Row("bc") :: Nil)
+  }
+
 }

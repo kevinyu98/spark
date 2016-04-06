@@ -18,7 +18,7 @@ package org.apache.spark.sql.catalyst.parser
 
 import org.antlr.v4.runtime.{CharStream, ParserRuleContext, Token}
 import org.antlr.v4.runtime.misc.Interval
-import org.antlr.v4.runtime.tree.TerminalNode
+import org.antlr.v4.runtime.tree.{RuleNode, TerminalNode}
 
 import org.apache.spark.sql.catalyst.parser.ParseUtils.unescapeSQLString
 import org.apache.spark.sql.catalyst.plans.logical.LogicalPlan
@@ -59,6 +59,9 @@ object ParserUtils {
 
   /** Convert a string node into a string. */
   def string(node: TerminalNode): String = unescapeSQLString(node.getText)
+
+  /** Convert a string rulenode into a string. */
+  def string(exp: RuleNode): String = unescapeSQLString(exp.getText)
 
   /** Get the origin (line and position) of the token. */
   def position(token: Token): Origin = {

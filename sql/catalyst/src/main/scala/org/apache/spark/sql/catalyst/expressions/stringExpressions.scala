@@ -347,6 +347,7 @@ case class FindInSet(left: Expression, right: Expression) extends BinaryExpressi
 /**
  * A function that trim the spaces from both ends for the specified string.
  */
+/*
 case class StringTrim(child: Expression)
   extends UnaryExpression with String2StringExpression {
 
@@ -356,6 +357,52 @@ case class StringTrim(child: Expression)
 
   override def genCode(ctx: CodegenContext, ev: ExprCode): String = {
     defineCodeGen(ctx, ev, c => s"($c).trim()")
+  }
+}
+*/
+
+case class StringTrim(children: Seq[Expression]) extends Expression with ImplicitCastInputTypes {
+
+  override def dataType: DataType = StringType
+
+  override def inputTypes: Seq[AbstractDataType] = Seq.fill(children.size)(StringType)
+
+  override def nullable: Boolean = children.exists(_.nullable)
+
+  override def foldable: Boolean = children.forall(_.foldable)
+
+  override def prettyName: String = "trim"
+
+  def convert(v: UTF8String): UTF8String = v.trimOptBoth(children.head.asInstanceOf[UTF8String])
+
+  override def eval(input: InternalRow): Any = {
+    //val values = children.map(_.eval(input).asInstanceOf[UTF8String])
+    val value1 = children.head.map(_.eval(input).asInstanceOf[UTF8String])
+    if (value1 == null) {
+      null
+    } else {
+      val value2 = children.tail.map(_.eval(input).asInstanceOf[UTF8String])
+      if (value2 == null) {
+        null
+      } else {
+        nullSafeEval(value1, value2)
+      }
+    }
+  }
+
+  def nullSafeEval(trimStr: Any, targetStr: Any): Any = {
+    targetStr.asInstanceOf[UTF8String].trimOptBoth(trimStr.asInstanceOf[UTF8String])
+  }
+
+  override def genCode(ctx: CodegenContext, ev: ExprCode): String = {
+    val evals = children.map(_.gen(ctx))
+    val inputs = evals.map { eval =>
+      s"${eval.isNull} ? null : ${eval.value}"
+    }.mkString(", ")
+    evals.map(_.code).mkString("\n") + s"""
+      boolean ${ev.isNull} = false
+        UTF8String ${ev.value} = ${}
+   """
   }
 }
 

@@ -2283,8 +2283,9 @@ object functions {
    * @group string_funcs
    * @since 1.5.0
    */
-  def trim(e: Column): Column = withExpr { StringTrim(e.expr) }
-
+  //def trim(e: Column): Column = withExpr { StringTrim(e.expr) }
+  @scala.annotation.varargs
+  def trim(e: Column*): Column = withExpr { StringTrim(e.map(_.expr))}
   /**
    * Converts a string column to upper case.
    *

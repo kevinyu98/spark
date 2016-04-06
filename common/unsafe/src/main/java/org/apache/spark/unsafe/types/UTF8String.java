@@ -476,6 +476,9 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     }
   }
 
+  public UTF8String trimOptBoth (UTF8String trimChar) {
+      return UTF8String.fromBytes(new byte[0]);
+  }
   public UTF8String trimLeft() {
     int s = 0;
     // skip all of the space (0x20) in the left side
