@@ -1033,7 +1033,7 @@ class AstBuilder extends SqlBaseBaseVisitor[AnyRef] with Logging {
     val isDistinct = Option(ctx.setQuantifier()).exists(_.DISTINCT != null)
     val name = (
          ctx.qualifiedName.getText.toLowerCase,
-         Option(ctx.operator),
+         Option(ctx.operator).map(_.getType),
          Option(ctx.trimChar)) match {
       case (u, None, None) => ctx.qualifiedName.getText
       case (u, s, _) if (!u.equals("trim") ) =>
