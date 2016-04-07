@@ -449,7 +449,10 @@ class StringExpressionsSuite extends SparkFunSuite with ExpressionEvalHelper {
     val s = 'a.string.at(0)
     def testTRIM(inputs: Expression*): Unit = {
       val expected = if (inputs.contains(null)) null else inputs.mkString
-      checkEvaluation(StringTrim(inputs.map(Literal.create(_, StringType))), expected, EmptyRow)
+      //checkEvaluation(StringTrim(inputs.map(Literal.create(_, StringType)))), expected, EmptyRow)
+      val first = inputs(0)
+      val second = inputs(1)
+      checkEvaluation(StringTrim(first, Literal.create(second, StringType)), expected, EmptyRow)
     }
 
 

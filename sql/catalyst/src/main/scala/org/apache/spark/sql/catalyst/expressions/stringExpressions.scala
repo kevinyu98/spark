@@ -347,6 +347,36 @@ case class FindInSet(left: Expression, right: Expression) extends BinaryExpressi
 /**
  * A function that trim the spaces from both ends for the specified string.
  */
+case class StringTrim(
+    left: Expression,
+    right: Literal = Literal.create("", StringType))
+    extends BinaryExpression with ImplicitCastInputTypes {
+
+  override def dataType: DataType = StringType
+  override def inputTypes: Seq[DataType] = Seq(StringType, StringType)
+  override def nullSafeEval(trimStr: Any, targetStr: Any): Any = {
+    targetStr.asInstanceOf[UTF8String].trimOptBoth(trimStr.asInstanceOf[UTF8String])
+  }
+
+  def convert(v: UTF8String): UTF8String = v.trimOptBoth(left.asInstanceOf[UTF8String])
+
+  override def prettyName: String = "trim"
+
+  override def genCode(ctx: CodegenContext, ev: ExprCode): String = {
+    if (right.value.asInstanceOf[String].size > 1) {
+      defineCodeGen(ctx, ev, (c, targetStr) => s"($targetStr).trimBoth($c)")
+    } else {
+      defineCodeGen(ctx, ev, (c, targetStr) => s"($targetStr).trim($c)")
+    }
+
+  }
+
+  override def sql: String = {
+    val leftSQL = left.map(_.sql).mkString(", ")
+    val rightSQL = right.value.asInstanceOf[String]
+    s"trim(BOTH $leftSQL FROM $rightSQL)"
+  }
+}
 /*
 case class StringTrim(child: Expression)
   extends UnaryExpression with String2StringExpression {
@@ -360,7 +390,7 @@ case class StringTrim(child: Expression)
   }
 }
 */
-
+/*
 case class StringTrim(children: Seq[Expression]) extends Expression with ImplicitCastInputTypes {
 
   override def dataType: DataType = StringType
@@ -405,6 +435,7 @@ case class StringTrim(children: Seq[Expression]) extends Expression with Implici
    """
   }
 }
+*/
 
 /**
  * A function that trim the spaces from left end for given string.

@@ -461,13 +461,15 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     return UTF8String.fromBytes(newBytes);
   }
 
-  public UTF8String trim() {
+  public UTF8String trim(UTF8String trimChar) {
     int s = 0;
     int e = this.numBytes - 1;
     // skip all of the space (0x20) in the left side
-    while (s < this.numBytes && getByte(s) <= 0x20 && getByte(s) >= 0x00) s++;
+    // while (s < this.numBytes && getByte(s) <= 0x20 && getByte(s) >= 0x00) s++;
+      while (s < this.numBytes && getByte(s) == trimChar.getByte(0) && getByte(s) >= 0x00) s++;
     // skip all of the space (0x20) in the right side
-    while (e >= 0 && getByte(e) <= 0x20 && getByte(e) >= 0x00) e--;
+    // while (e >= 0 && getByte(e) <= 0x20 && getByte(e) >= 0x00) e--;
+      while (e >= 0 && getByte(e) == trimChar.getByte(0) && getByte(e) >= 0x00) e--;
     if (s > e) {
       // empty string
       return UTF8String.fromBytes(new byte[0]);
