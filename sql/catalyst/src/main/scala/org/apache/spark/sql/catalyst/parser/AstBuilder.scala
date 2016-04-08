@@ -1025,12 +1025,15 @@ class AstBuilder extends SqlBaseBaseVisitor[AnyRef] with Logging {
    */
   override def visitFunctionCall(ctx: FunctionCallContext): Expression = withOrigin(ctx) {
     // Create the function call.
-    val name = ctx.qualifiedName.getText
+    //val name = ctx.qualifiedName.getText
+    val ts = Seq("trim","ltrim", "rtrim")
+    val name = Option(ctx.operator).map( o => getFunctionName(o, ts)) getOrElse(ctx.qualifiedName.getText)
     val isDistinct = Option(ctx.setQuantifier()).exists(_.DISTINCT != null)
     val arguments = ctx.expression().asScala.map(expression) match {
       case Seq(UnresolvedStar(None)) if name.toLowerCase == "count" && !isDistinct =>
         // Transform COUNT(*) into COUNT(1). Move this to analysis?
         Seq(Literal(1))
+     // case expressions if ts.contains(name.toLowerCase) &&
       case expressions =>
         expressions
     }
@@ -1044,6 +1047,48 @@ class AstBuilder extends SqlBaseBaseVisitor[AnyRef] with Logging {
         WindowExpression(function, visitWindowDef(spec))
       case _ => function
     }
+  }
+
+  /**
+   * Create a name LTRIM for TRIM(Leading), RTRIM for TRIM(Trailing), TRIM for TRIM(BOTH)
+   */
+  private def getFunctionName(ctx: FunctionCallContext, ts: Seq[String]): String = {
+    //val ts = Seq("trim","ltrim", "rtrim")
+    /*
+    Option(ctx.trimChar) match {
+      case Some(s) if !name.toLowerCase.contains(trimString) =>
+        throw new ParseException(s"Function $name doesn't support this $s keyword.", ctx)
+      case Some(s) if string(s).size > 1 =>
+        throw new ParseException(s"trim Character length great than 1 ${s.getText}.", ctx)
+      case _ =>
+    }
+    */
+      (ctx.qualifiedName.getText,
+      Option(ctx.operator).map(_.getType),
+      Option(ctx.trimChar))match {
+       case (s, None, None) => s
+       case (s, Some(u), _) if (!ts.contains(s.toLowerCase())) =>
+         throw new ParseException(s"Function $s doesn't support this $u keyword.", ctx)
+       case (s, _, Some(t)) if (ts.contains(s) && (string(t).length > 1)) =>
+         throw new ParseException(s"trim Character length great than 1${t.getText}.", ctx)
+       case (s, Some(u), _) if (u == SqlBaseParser.BOTH) => "trim"
+       case (s, Some(u), _) if (u == SqlBaseParser.LEADING) => "ltrim"
+       case (s, Some(u), _) if (u == SqlBaseParser.TRAILING) => "rtrim"
+    }
+
+    /*
+    val functionName = (ctx.qualifiedName.getText.toLowerCase,
+                        Option(ctx.operator),
+                        Option(ctx.trimChar)) match {
+      case (u, None, None) => ctx.qualifiedName.getText
+      case (u, Some(s), _) if (u != "trim") =>
+        throw new ParseException(s"Function $u doesn't support this $s keyword.", ctx)
+      case ("trim", Some(s), Some(t)) if (string(t).size > 1) =>
+        throw new ParseException(s"trim Character length great than 1 ${t.getText}.", ctx)
+      //case ()
+    }
+
+  */
   }
 
   /**

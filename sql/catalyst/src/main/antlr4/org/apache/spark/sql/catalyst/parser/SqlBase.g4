@@ -497,6 +497,8 @@ primaryExpression
     | qualifiedName '.' ASTERISK                                                               #star
     | '(' expression (',' expression)+ ')'                                                     #rowConstructor
     | qualifiedName '(' (setQuantifier? expression (',' expression)*)? ')' (OVER windowSpec)?  #functionCall
+    | qualifiedName '(' operator=(BOTH | LEADING | TRAILING) trimChar=expression
+      FROM expression ')' (OVER windowSpec)?                                                   #functionCall
     | '(' query ')'                                                                            #subqueryExpression
     | CASE valueExpression whenClause+ (ELSE elseExpression=expression)? END                   #simpleCase
     | CASE whenClause+ (ELSE elseExpression=expression)? END                                   #searchedCase
@@ -653,6 +655,7 @@ nonReserved
     | STATISTICS | ANALYZE | PARTITIONED | EXTERNAL | DEFINED | RECORDWRITER
     | REVOKE | GRANT | LOCK | UNLOCK | MSCK | EXPORT | IMPORT | LOAD | VALUES | COMMENT | ROLE
     | ROLES | COMPACTIONS | PRINCIPALS | TRANSACTIONS | INDEX | INDEXES | LOCKS | OPTION
+    | BOTH | LEADING | TRAILING
     ;
 
 SELECT: 'SELECT';
@@ -765,6 +768,9 @@ READ: 'READ';
 WRITE: 'WRITE';
 ONLY: 'ONLY';
 MACRO: 'MACRO';
+BOTH: 'BOTH';
+LEADING: 'LEADING';
+TRAILING: 'TRAILING';
 
 IF: 'IF';
 

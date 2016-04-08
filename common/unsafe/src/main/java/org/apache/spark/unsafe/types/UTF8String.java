@@ -461,19 +461,77 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     return UTF8String.fromBytes(newBytes);
   }
 
-  public UTF8String trim() {
+  public UTF8String trim(UTF8String trimChar) {
     int s = 0;
     int e = this.numBytes - 1;
     // skip all of the space (0x20) in the left side
-    while (s < this.numBytes && getByte(s) <= 0x20 && getByte(s) >= 0x00) s++;
+    // while (s < this.numBytes && getByte(s) <= 0x20 && getByte(s) >= 0x00) s++;
+      while (s < this.numBytes && getByte(s) == trimChar.getByte(0) && getByte(s) >= 0x00) s++;
     // skip all of the space (0x20) in the right side
-    while (e >= 0 && getByte(e) <= 0x20 && getByte(e) >= 0x00) e--;
+    // while (e >= 0 && getByte(e) <= 0x20 && getByte(e) >= 0x00) e--;
+      while (e >= 0 && getByte(e) == trimChar.getByte(0) && getByte(e) >= 0x00) e--;
     if (s > e) {
       // empty string
       return UTF8String.fromBytes(new byte[0]);
     } else {
       return copyUTF8String(s, e);
     }
+  }
+
+  public UTF8String trimOptBoth (UTF8String trimChar) {
+    int s = 0;
+    int sp = 0;
+    int numTrimBytes = trimChar.numBytes;
+    int e = this.numBytes-1;
+    int ep = this.numBytes - numTrimBytes;
+    byte trimByte = trimChar.getByte(s);
+
+    // single byte trim character
+    if (numBytesForFirstByte(trimByte) == 1) {
+        if (trimByte <= 0x20 && trimByte >= 0x00) {
+            while (s < this.numBytes && getByte(s) <= 0x20 && getByte(s) >= 0x00) s++;
+            while (e >= 0 && getByte(e) == 0x20 && getByte(e) >= 0x00) e--;
+        } else {
+            while (s < this.numBytes && getByte(s) == trimByte) s++;
+            while (e >= 0 && getByte(e) == trimByte) e--;
+        }
+        if (s > e) {
+          // empty string
+          return UTF8String.fromBytes(new byte[0]);
+        } else {
+          return copyUTF8String(s, e);
+        }
+    }
+
+    // skip all the character in the left side
+    while(s < this.numBytes && sp >= 0) {
+       // sp = this.indexOf(trimChar, sp);
+       sp = this.find(trimChar, sp);
+        if (sp != s) {
+          sp = -1;
+        } else {
+          sp += numTrimBytes;
+          s += numTrimBytes;
+        }
+    }
+    // skip all the character in the right side
+    while (e > 0 && ep >= 0) {
+      e = this.rfind(trimChar, ep);
+      if (e != ep) {
+        e = ep + numTrimBytes -1;
+        ep = -1;
+      } else {
+        ep -= numTrimBytes;
+      }
+
+    }
+   if (s > e) {
+       // empty string
+     return UTF8String.fromBytes(new byte[0]);
+   } else {
+     return copyUTF8String(s, e);
+   }
+      //return UTF8String.fromBytes(new byte[0]);
   }
 
   public UTF8String trimLeft() {
