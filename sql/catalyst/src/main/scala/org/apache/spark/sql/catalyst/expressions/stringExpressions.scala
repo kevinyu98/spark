@@ -349,7 +349,8 @@ case class FindInSet(left: Expression, right: Expression) extends BinaryExpressi
  */
 case class StringTrim(
     left: Expression,
-    right: Literal = Literal.create("", StringType))
+   // right: Literal = Literal.create("", StringType))
+    right: Expression)
     extends BinaryExpression with ImplicitCastInputTypes {
 
   override def dataType: DataType = StringType
@@ -363,7 +364,8 @@ case class StringTrim(
   override def prettyName: String = "trim"
 
   override def genCode(ctx: CodegenContext, ev: ExprCode): String = {
-    if (right.value.asInstanceOf[String].size > 1) {
+    //if (right.value.asInstanceOf[String].size > 1) {
+    if (right.toString.size > 1) {
       defineCodeGen(ctx, ev, (c, targetStr) => s"($targetStr).trimBoth($c)")
     } else {
       defineCodeGen(ctx, ev, (c, targetStr) => s"($targetStr).trim($c)")
@@ -372,9 +374,10 @@ case class StringTrim(
   }
 
   override def sql: String = {
-    val leftSQL = left.map(_.sql).mkString(", ")
-    val rightSQL = right.value.asInstanceOf[String]
-    s"trim(BOTH $leftSQL FROM $rightSQL)"
+    val leftChar = left.map(_.sql).mkString(", ")
+    //val rightSQL = right.value.asInstanceOf[String]
+    val rightString = right.map(_.sql).mkString(", ")
+    s"trim(BOTH $leftChar FROM $rightString)"
   }
 }
 /*

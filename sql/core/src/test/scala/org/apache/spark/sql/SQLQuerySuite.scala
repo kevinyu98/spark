@@ -2381,6 +2381,10 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
       sql("SELECT TRIM( BOTH ' ' FROM '  bc  ' )"), Row("bc") :: Nil)
 
     checkAnswer(
+      sql("SELECT TRIM( BOTH '花' FROM '花花世界花花' )"), Row("世界") :: Nil)
+
+
+    checkAnswer(
       sql("SELECT TRIM('  bc  ' )"), Row("bc") :: Nil)
   }
 
