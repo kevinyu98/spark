@@ -347,7 +347,6 @@ case class FindInSet(left: Expression, right: Expression) extends BinaryExpressi
 /**
  * A function that trim the spaces or character from both ends for the specified string.
  */
-
 case class StringTrim(params: Seq[Expression])
   extends Expression with ImplicitCastInputTypes {
 
