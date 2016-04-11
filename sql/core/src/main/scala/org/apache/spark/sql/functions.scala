@@ -2154,7 +2154,7 @@ object functions {
    * @group string_funcs
    * @since 1.5.0
    */
-  def ltrim(e: Column): Column = withExpr {StringTrimLeft(e.expr) }
+  def ltrim(e: Column): Column = withExpr {StringTrimLeft(Seq(e.expr))}
 
   /**
    * Extract a specific(idx) group identified by a java regex, from the specified string column.
@@ -2219,7 +2219,7 @@ object functions {
    * @group string_funcs
    * @since 1.5.0
    */
-  def rtrim(e: Column): Column = withExpr { StringTrimRight(e.expr) }
+  def rtrim(e: Column): Column = withExpr { StringTrimRight(Seq(e.expr)) }
 
   /**
    * * Return the soundex code for the specified expression.
@@ -2283,11 +2283,16 @@ object functions {
    * @group string_funcs
    * @since 1.5.0
    */
-  //def trim(e: Column): Column = withExpr { StringTrim(e.expr) }
- // @scala.annotation.varargs
-  //def trim(e: Column*): Column = withExpr { StringTrim(e.map(_.expr))}
-  def trim( e: Column, str: String = ""): Column =
-            withExpr { StringTrim( e.expr,Literal.create(str,StringType))}
+  def trim(e: Column): Column = withExpr { StringTrim(Seq(e.expr)) }
+
+  /**
+   * Trim the specified character from both ends for the specified string column.
+   *
+   * @group string_funcs
+   * @since 2.0.0
+   */
+  def trim( e: Column, trimChar: Char): Column =
+            withExpr { StringTrim(Seq(e.expr, Literal(trimChar)))}
   /**
    * Converts a string column to upper case.
    *

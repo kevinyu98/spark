@@ -128,8 +128,8 @@ class UTF8StringPropertyCheckSuite extends FunSuite with GeneratorDrivenProperty
     ) { (start: String, middle: String, end: String) =>
       val s = start + middle + end
       assert(toUTF8(s).trim(toUTF8("")) === toUTF8(s.trim()))
-      assert(toUTF8(s).trimLeft() === toUTF8(lTrim(s)))
-      assert(toUTF8(s).trimRight() === toUTF8(rTrim(s)))
+      assert(toUTF8(s).trimLeft(toUTF8("")) === toUTF8(lTrim(s)))
+      assert(toUTF8(s).trimRight(toUTF8("")) === toUTF8(rTrim(s)))
     }
   }
 

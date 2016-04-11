@@ -62,7 +62,7 @@ object ParserUtils {
   def string(node: TerminalNode): String = unescapeSQLString(node.getText)
 
   /** Convert a string rulenode into a string. */
-  def string(exp: RuleNode): String = unescapeSQLString(exp.getText)
+  def string(exp: String): String = unescapeSQLString(exp)
 
   /** Get the origin (line and position) of the token. */
   def position(token: Token): Origin = {

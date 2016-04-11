@@ -1837,4 +1837,119 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
       }
     }
   }
+  test("TRIM function-BOTH") {
+    withTable("foo") {
+      sql("create table foo (c1 string, c2 char(2), c3 string, c4 string )")
+      sql("insert into foo select 'ccccbacc', ' cc', ' cccbacc', 'cccbacc ' ")
+      intercept[AnalysisException] {
+        sql("SELECT TRIM(c1, c2 ) from foo")
+      }
+      intercept[AnalysisException] {
+        sql("SELECT TRIM(BOTH C1 FROM C2) from foo")
+      }
+      intercept[AnalysisException] {
+        sql("SELECT TRIM(BOTH C2 FROM 'c') from foo")
+      }
+      intercept[AnalysisException] {
+        sql("SELECT TRIM('c', C1) from foo")
+     }
+      intercept[AnalysisException] {
+        sql("SELECT TRIM('c','d') from foo")
+     }
+     intercept[AnalysisException] {
+       sql("SELECT TRIM('c', C1, 'd') from foo")
+     }
+      checkAnswer (
+      sql("SELECT TRIM(BOTH 'c' FROM C1) from foo"),
+        Row("ba")
+      )
+      checkAnswer (
+        sql("SELECT TRIM(BOTH 'c' FROM C2) from foo"),
+        Row(" ")
+      )
+      checkAnswer (
+        sql("SELECT TRIM(BOTH 'c' FROM C3) from foo"),
+        Row(" cccba")
+      )
+      checkAnswer (
+        sql("SELECT TRIM(BOTH 'c' FROM C4) from foo"),
+        Row("bacc ")
+      )
+    }
+  }
+  test("TRIM function-Leading") {
+    withTable("foo2") {
+      sql("create table foo2 (c1 string, c2 char(3), c3 string, c4 string )")
+      sql("insert into foo2 select 'ccccbacc', 'cc ', ' cccbacc', 'cccbacc ' ")
+      intercept[AnalysisException] {
+        sql("SELECT TRIM(LEADING C1 FROM C2) from foo2")
+      }
+      intercept[AnalysisException] {
+        sql("SELECT TRIM(LEADING C2 FROM 'c') from foo2")
+      }
+      intercept[AnalysisException] {
+        sql("SELECT TRIM(LEADING 'c' C1) from foo2")
+     }
+      intercept[AnalysisException] {
+        sql("SELECT TRIM(LEADING 'c' 'd') from foo2")
+     }
+      intercept[AnalysisException] {
+       sql("SELECT TRIM('c' FROM 'd') from foo2")
+     }
+      checkAnswer (
+        sql("SELECT TRIM(LEADING 'c' FROM C1) from foo2"),
+        Row("bacc")
+      )
+      checkAnswer (
+        sql("SELECT TRIM(LEADING 'c' FROM C2) from foo2"),
+        Row(" ")
+      )
+      checkAnswer (
+        sql("SELECT TRIM(LEADING 'c' FROM C3) from foo2"),
+        Row(" cccbacc")
+      )
+      checkAnswer (
+        sql("SELECT TRIM(LEADING 'c' FROM C4) from foo2"),
+        Row("bacc ")
+      )
+    }
+  }
+  test("TRIM function-Trailing") {
+    withTable("foo3") {
+      sql("create table foo3 (c1 string, c2 char(3), c3 string, c4 string )")
+      sql("insert into foo3 select 'ccccbacc', ' cc', 'cccbacc ', ' cccbacc' ")
+      intercept[AnalysisException] {
+        sql("SELECT TRIM(TRAILING C1 FROM C2) from foo3")
+      }
+      intercept[AnalysisException] {
+        sql("SELECT TRIM(TRAILING C2 FROM 'c') from foo3")
+      }
+      intercept[AnalysisException] {
+        sql("SELECT TRIM(TRAILING 'c' C1) from foo3")
+     }
+      intercept[AnalysisException] {
+        sql("SELECT TRIM(TRAILING 'c' 'd') from foo3")
+     }
+      intercept[AnalysisException] {
+       sql("SELECT TRIM('c' FROM 'd') from foo3")
+     }
+      checkAnswer (
+        sql("SELECT TRIM(TRAILING 'c' FROM C1) from foo3"),
+        Row("ccccba")
+      )
+      checkAnswer (
+        sql("SELECT TRIM(TRAILING 'c' FROM C2) from foo3"),
+        Row(" ")
+      )
+      checkAnswer (
+        sql("SELECT TRIM(TRAILING 'c' FROM C3) from foo3"),
+        Row("cccbacc ")
+      )
+      checkAnswer (
+        sql("SELECT TRIM(TRAILING 'c' FROM C4) from foo3"),
+        Row(" cccba")
+      )
+    }
+  }
+
 }
