@@ -476,10 +476,84 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     }
   }
 
+  /**
+   * Search the trim character from left and right side of the target string
+   * by using find and rfind method.
+   * @param trimChar the trim character
+  */
+  public UTF8String trim (UTF8String trimChar) {
+    if (trimChar == null) {
+        return null;
+    }
+    int s = 0;
+    int sp = 0;
+    int numTrimBytes = trimChar.numBytes;
+    int e = this.numBytes-1;
+    int ep = this.numBytes - numTrimBytes;
+    // skip all the character in the left side
+    // s is the index for the matching character in the target string
+    // sp is the search index to find next matching character
+    while(s < this.numBytes && sp >= 0) {
+      sp = this.find(trimChar, sp);
+      if (sp != s) {
+        sp = -1;
+      } else {
+        sp += numTrimBytes;
+        s += numTrimBytes;
+      }
+    }
+    // skip all the character in the right side
+    // ep is the search index to find the matching character
+    // e is the index for the matching character
+    while (e >=0 && ep >= 0) {
+      e = this.rfind(trimChar, ep);
+      if (e != ep) {
+        e = ep + numTrimBytes -1;
+        ep = -1;
+      } else if (e == 0){
+        // match the last character
+        e = -1;
+      } else {
+        ep -= numTrimBytes;
+      }
+    }
+    if (s > e) {
+      // empty string
+      return UTF8String.fromBytes(new byte[0]);
+    } else {
+      return copyUTF8String(s, e);
+    }
+  }
+
   public UTF8String trimLeft() {
     int s = 0;
     // skip all of the space (0x20) in the left side
     while (s < this.numBytes && getByte(s) <= 0x20 && getByte(s) >= 0x00) s++;
+    if (s == this.numBytes) {
+      // empty string
+      return UTF8String.fromBytes(new byte[0]);
+    } else {
+      return copyUTF8String(s, this.numBytes - 1);
+    }
+  }
+
+  public UTF8String trimLeft(UTF8String trimChar) {
+    if (trimChar == null) {
+        return null;
+    }
+    int s = 0;
+    int sp = 0;
+    int numTrimBytes = trimChar.numBytes;
+    // skip all the character in the left side
+    while (s < this.numBytes && sp >= 0 ) {
+      sp = this.find(trimChar, sp);
+      if (sp != s) {
+        sp = -1;
+      } else {
+        sp += numTrimBytes;
+        s += numTrimBytes;
+      }
+    }
     if (s == this.numBytes) {
       // empty string
       return UTF8String.fromBytes(new byte[0]);
@@ -501,7 +575,35 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     }
   }
 
-  public UTF8String reverse() {
+  public UTF8String trimRight(UTF8String trimChar) {
+    if (trimChar == null) {
+      return null;
+    }
+    int numTrimBytes = trimChar.numBytes;
+    int e = this.numBytes-1;
+    int ep = this.numBytes - numTrimBytes;
+    // skip all the character in the right side
+    while (e >=0 && ep >= 0) {
+      e = this.rfind(trimChar, ep);
+      if (e != ep) {
+         e = ep + numTrimBytes -1;
+         ep = -1;
+      } else if (e == 0){
+      // the whole string is matching
+        e = -1;
+      } else {
+        ep -= numTrimBytes;
+      }
+    }
+    if (e < 0) {
+      // empty string
+      return UTF8String.fromBytes(new byte[0]);
+    } else {
+      return copyUTF8String(0, e);
+    }
+  }
+
+    public UTF8String reverse() {
     byte[] result = new byte[this.numBytes];
 
     int i = 0; // position in byte
