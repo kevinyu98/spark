@@ -530,6 +530,8 @@ public class UTF8StringSuite {
     assertEquals(fromString("  数据砖头"), fromString("  数据砖头 ").trimRight(fromString(" ")));
     assertEquals(fromString("数"), fromString("数").trimRight(fromString("a")));
     assertEquals(fromString("a"), fromString("a").trimRight(fromString("数")));
+    assertEquals(fromString("头"), fromString("头").trimRight(fromString("数")));
+    assertEquals(fromString("头"), fromString("头数数数").trimRight(fromString("数")));
     assertEquals(fromString("数数数据砖头"), fromString("数数数据砖头数数").trimRight(fromString("数")));
     assertEquals(fromString("数数数据砖头数数 "), fromString("数数数据砖头数数 ").trimRight(fromString("数")));
     assertEquals(fromString("aa数数数据砖头数数"), fromString("aa数数数据砖头数数aaa")
@@ -550,6 +552,8 @@ public class UTF8StringSuite {
     assertEquals(fromString("aaa数据砖头aaaaa"), fromString("aaa数据砖头aaaaa")
             .trimLeft(fromString("数")));
     assertEquals(fromString("数据砖头"), fromString("数据砖头").trimRight(fromString(" ")));
+    assertEquals(fromString("数"), fromString("数").trimRight(fromString("a")));
+    assertEquals(fromString("a"), fromString("a").trimRight(fromString("数")));
     assertEquals(fromString("aaa数据砖头"), fromString("aaa数据砖头aaaaa").trimRight(fromString("a")));
     assertEquals(fromString("aaa数据砖头aaaaa "), fromString("aaa数据砖头aaaaa ")
             .trimRight(fromString("a")));
