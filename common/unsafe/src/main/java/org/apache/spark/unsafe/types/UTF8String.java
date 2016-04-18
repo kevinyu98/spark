@@ -492,11 +492,8 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     int e = this.numBytes-numTrimBytes;
     // skip all the continue matching character in the left side
     // s is the index for the matching character in the target string
-    while(s < this.numBytes) {
-      if (s != this.find(trimChar, s))
-        break;
-      else
-        s += numTrimBytes;
+    while(s < this.numBytes && s == this.find(trimChar, s)) {
+      s += numTrimBytes;
     }
     // skip all the matching character in the right side
     // e is the index for the matching character
@@ -540,11 +537,8 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     int s = 0;
     int numTrimBytes = trimChar.numBytes;
     // skip all the continue matching character in the left side
-    while(s < this.numBytes) {
-      if (s != this.find(trimChar, s))
-        break;
-      else
-        s += numTrimBytes;
+    while(s < this.numBytes && s == this.find(trimChar, s)) {
+      s += numTrimBytes;
     }
     if (s == this.numBytes) {
       // empty string
