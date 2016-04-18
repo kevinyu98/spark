@@ -1025,7 +1025,6 @@ class AstBuilder extends SqlBaseBaseVisitor[AnyRef] with Logging {
    */
   override def visitFunctionCall(ctx: FunctionCallContext): Expression = withOrigin(ctx) {
     // Create the function call.
-
     val name =
       Option(ctx.operator)
         .map( o => getTrimFuncName(
@@ -1056,9 +1055,8 @@ class AstBuilder extends SqlBaseBaseVisitor[AnyRef] with Logging {
   private def getTrimFuncName(ctx: FunctionCallContext, optType: Int, trimChar: String): String = {
     if (ctx.qualifiedName.getText.toLowerCase != "trim") {
       throw new ParseException(s"doesn't support this $optType.", ctx)
-    }
-    else if (string(trimChar).length > 1) {
-      throw new ParseException(s"trim Character length great than 1 ${trimChar}.", ctx)
+    } else if (string(trimChar).length > 1) {
+      throw new ParseException(s"trim Character can only be 1 character.", ctx)
     }
     optType match {
        case (SqlBaseParser.BOTH) => "trim"

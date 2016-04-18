@@ -2478,7 +2478,6 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
     checkAnswer(sql("SELECT TRIM(BOTH 'c' FROM ' ccccbcc ' )"), Row(" ccccbcc ") :: Nil)
     checkAnswer(sql("SELECT TRIM(BOTH 'c' FROM ' ccccbcc' )"), Row(" ccccb") :: Nil)
     checkAnswer(sql("SELECT TRIM(BOTH 'c' FROM 'ccccbcc ' )"), Row("bcc ") :: Nil)
-    checkAnswer(sql("SELECT TRIM(' ', '  bc  ' )"), Row("bc") :: Nil)
   }
   test("TRIM function-LEADING") {
     checkAnswer( sql("SELECT trim(LEADING ' ' FROM '  SparkSql ')"), Row("SparkSql ") :: Nil)
@@ -2491,7 +2490,6 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
     checkAnswer( sql("SELECT TRIM(LEADING 'c' FROM ' ccccbcc ')"), Row(" ccccbcc ") :: Nil)
     checkAnswer( sql("SELECT TRIM(LEADING 'c' FROM ' ccccbcc')"), Row(" ccccbcc") :: Nil)
     checkAnswer( sql("SELECT TRIM(LEADING 'c' FROM 'ccccbcc ')"), Row("bcc ") :: Nil)
-    checkAnswer( sql("SELECT LTRIM('  bc  ' )"), Row("bc  ") :: Nil)
   }
   test("TRIM function-TRAILING") {
     checkAnswer( sql("SELECT trim(TRAILING ' ' FROM '  SparkSql ')"), Row("  SparkSql") :: Nil)
@@ -2500,11 +2498,10 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
     checkAnswer(sql("SELECT TRIM(TRAILING 'c' FROM 'bc' )"), Row("b") :: Nil)
     checkAnswer(sql("SELECT TRIM(TRAILING 'c' FROM 'c' )"), Row("") :: Nil)
     checkAnswer(sql("SELECT TRIM(TRAILING 'c' FROM ' ccccccc' )"), Row(" ") :: Nil)
-    checkAnswer( sql("SELECT TRIM(TRAILING ' ' FROM '  bc  ' )"), Row("  bc") :: Nil)
-    checkAnswer( sql("SELECT TRIM(TRAILING 'c' FROM 'ccccbcc' )"), Row("ccccb") :: Nil)
-    checkAnswer( sql("SELECT TRIM(TRAILING 'c' FROM ' ccccbcc ' )"), Row(" ccccbcc ") :: Nil)
-    checkAnswer( sql("SELECT TRIM(TRAILING 'c' FROM ' ccccbcc' )"), Row(" ccccb") :: Nil)
-    checkAnswer( sql("SELECT TRIM(TRAILING 'c' FROM 'ccccbcc ' )"), Row("ccccbcc ") :: Nil)
-    checkAnswer( sql("SELECT RTRIM('  bc  ' )"), Row("  bc") :: Nil)
+    checkAnswer(sql("SELECT TRIM(TRAILING ' ' FROM '  bc  ' )"), Row("  bc") :: Nil)
+    checkAnswer(sql("SELECT TRIM(TRAILING 'c' FROM 'ccccbcc' )"), Row("ccccb") :: Nil)
+    checkAnswer(sql("SELECT TRIM(TRAILING 'c' FROM ' ccccbcc ' )"), Row(" ccccbcc ") :: Nil)
+    checkAnswer(sql("SELECT TRIM(TRAILING 'c' FROM ' ccccbcc' )"), Row(" ccccb") :: Nil)
+    checkAnswer(sql("SELECT TRIM(TRAILING 'c' FROM 'ccccbcc ' )"), Row("ccccbcc ") :: Nil)
   }
 }

@@ -1859,22 +1859,22 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
       val e = intercept[AnalysisException] {
         sql("SELECT TRIM('c', C1, 'd') from foo")
       }
-    checkAnswer ( sql("SELECT TRIM(C2, C1) from foo"), Row(""))
-    checkAnswer ( sql("SELECT TRIM(BOTH C2 FROM C1) from foo"), Row(""))
-    checkAnswer ( sql("SELECT TRIM(BOTH C6 FROM C2) from foo"), Row("c"))
-    checkAnswer ( sql("SELECT TRIM(BOTH 'c' FROM C1) from foo"), Row(""))
-    checkAnswer ( sql("SELECT TRIM(BOTH 'c' FROM C2) from foo"), Row(""))
-    checkAnswer ( sql("SELECT TRIM(BOTH 'c' FROM C3) from foo"), Row(" cccba"))
+    checkAnswer (sql("SELECT TRIM(C2, C1) from foo"), Row(""))
+    checkAnswer (sql("SELECT TRIM(BOTH C2 FROM C1) from foo"), Row(""))
+    checkAnswer (sql("SELECT TRIM(BOTH C6 FROM C2) from foo"), Row("c"))
+    checkAnswer (sql("SELECT TRIM(BOTH 'c' FROM C1) from foo"), Row(""))
+    checkAnswer (sql("SELECT TRIM(BOTH 'c' FROM C2) from foo"), Row(""))
+    checkAnswer (sql("SELECT TRIM(BOTH 'c' FROM C3) from foo"), Row(" cccba"))
     // scalastyle:off
     // non ascii characters are not allowed in the source code, so we disable the scalastyle.
-    checkAnswer ( sql("SELECT TRIM(BOTH C2 FROM C6) from foo"), Row("数"))
-    checkAnswer ( sql("SELECT TRIM(BOTH '数' FROM '数数数') from foo"), Row(""))
-    checkAnswer ( sql("SELECT TRIM(BOTH '敠' FROM '敠敠数敠敠') from foo"), Row("数"))
-    checkAnswer ( sql("SELECT TRIM(BOTH '搠' FROM '数') from foo"), Row("数"))
-    checkAnswer ( sql("SELECT TRIM(BOTH '搰' FROM '数') from foo"), Row("数"))
-    checkAnswer ( sql("Select TRIM(BOTH '数' FROM C5) from foo"), Row("据砖头"))
-    checkAnswer ( sql("SELECT TRIM(BOTH 'c' FROM C4) from foo"), Row("bacc数"))
-    checkAnswer ( sql("SELECT TRIM(BOTH '数' FROM C4) from foo"), Row("cccbacc"))
+    checkAnswer (sql("SELECT TRIM(BOTH C2 FROM C6) from foo"), Row("数"))
+    checkAnswer (sql("SELECT TRIM(BOTH '数' FROM '数数数') from foo"), Row(""))
+    checkAnswer (sql("SELECT TRIM(BOTH '敠' FROM '敠敠数敠敠') from foo"), Row("数"))
+    checkAnswer (sql("SELECT TRIM(BOTH '搠' FROM '数') from foo"), Row("数"))
+    checkAnswer (sql("SELECT TRIM(BOTH '搰' FROM '数') from foo"), Row("数"))
+    checkAnswer (sql("Select TRIM(BOTH '数' FROM C5) from foo"), Row("据砖头"))
+    checkAnswer (sql("SELECT TRIM(BOTH 'c' FROM C4) from foo"), Row("bacc数"))
+    checkAnswer (sql("SELECT TRIM(BOTH '数' FROM C4) from foo"), Row("cccbacc"))
     // scalastyle:on
     }
   }
@@ -1887,19 +1887,19 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
       // scalastyle:on
       intercept[AnalysisException] { sql("SELECT TRIM(C1, C2, C3) from foo2")}
 
-      checkAnswer ( sql("SELECT LTRIM(C2,C1) from foo2"), Row(""))
-      checkAnswer ( sql("SELECT TRIM(LEADING 'c' FROM C1) from foo2"), Row(""))
-      checkAnswer ( sql("SELECT TRIM(LEADING 'c' FROM C2) from foo2"), Row(""))
-      checkAnswer ( sql("SELECT TRIM(LEADING 'c' FROM C3) from foo2"), Row(" cccbacc"))
-      checkAnswer ( sql("SELECT TRIM(LEADING C2 FROM C1) from foo2"), Row(""))
-      checkAnswer ( sql("SELECT TRIM(LEADING C6 FROM C2) from foo2"), Row("c"))
+      checkAnswer (sql("SELECT LTRIM(C2,C1) from foo2"), Row(""))
+      checkAnswer (sql("SELECT TRIM(LEADING 'c' FROM C1) from foo2"), Row(""))
+      checkAnswer (sql("SELECT TRIM(LEADING 'c' FROM C2) from foo2"), Row(""))
+      checkAnswer (sql("SELECT TRIM(LEADING 'c' FROM C3) from foo2"), Row(" cccbacc"))
+      checkAnswer (sql("SELECT TRIM(LEADING C2 FROM C1) from foo2"), Row(""))
+      checkAnswer (sql("SELECT TRIM(LEADING C6 FROM C2) from foo2"), Row("c"))
       // scalastyle:off
-      checkAnswer ( sql("SELECT TRIM(LEADING 'c' FROM C4) from foo2"), Row("数bacc数"))
-      checkAnswer ( sql("SELECT TRIM(LEADING C2 FROM C6) from foo2"), Row("数"))
-      checkAnswer ( sql("SELECT TRIM(LEADING '数' FROM '数数数敠') from foo2"), Row("敠"))
-      checkAnswer ( sql("SELECT TRIM(LEADING '敠' FROM '敠敠数敠') from foo2"), Row("数敠"))
-      checkAnswer ( sql("SELECT TRIM(LEADING 'a' FROM 'aa数aa') from foo2"), Row("数aa"))
-      checkAnswer ( sql("SELECT TRIM(LEADING '搰' FROM '搰搰数') from foo2"), Row("数"))
+      checkAnswer (sql("SELECT TRIM(LEADING 'c' FROM C4) from foo2"), Row("数bacc数"))
+      checkAnswer (sql("SELECT TRIM(LEADING C2 FROM C6) from foo2"), Row("数"))
+      checkAnswer (sql("SELECT TRIM(LEADING '数' FROM '数数数敠') from foo2"), Row("敠"))
+      checkAnswer (sql("SELECT TRIM(LEADING '敠' FROM '敠敠数敠') from foo2"), Row("数敠"))
+      checkAnswer (sql("SELECT TRIM(LEADING 'a' FROM 'aa数aa') from foo2"), Row("数aa"))
+      checkAnswer (sql("SELECT TRIM(LEADING '搰' FROM '搰搰数') from foo2"), Row("数"))
       // scalastyle:on
     }
   }
@@ -1910,19 +1910,19 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
       sql("insert into foo3 select 'ccccbacc', 'c', ' cccbacc', 'cccbacc数', '数据砖头', '数'")
       // scalastyle:on
       intercept[AnalysisException] { sql("SELECT TRIM(TRAILING C1, C2, C3) from foo3")}
-      checkAnswer ( sql("SELECT RTRIM(C2, C1) from foo3"), Row("ccccba"))
-      checkAnswer ( sql("SELECT TRIM(TRAILING 'c' FROM C1) from foo3"), Row("ccccba"))
-      checkAnswer ( sql("SELECT TRIM(TRAILING 'c' FROM C2) from foo3"), Row(""))
-      checkAnswer ( sql("SELECT TRIM(TRAILING 'c' FROM C3) from foo3"), Row(" cccba"))
-      checkAnswer ( sql("SELECT TRIM(TRAILING C2 FROM C1) from foo3"), Row("ccccba"))
-      checkAnswer ( sql("SELECT TRIM(TRAILING C6 FROM C2) from foo3"), Row("c"))
+      checkAnswer (sql("SELECT RTRIM(C2, C1) from foo3"), Row("ccccba"))
+      checkAnswer (sql("SELECT TRIM(TRAILING 'c' FROM C1) from foo3"), Row("ccccba"))
+      checkAnswer (sql("SELECT TRIM(TRAILING 'c' FROM C2) from foo3"), Row(""))
+      checkAnswer (sql("SELECT TRIM(TRAILING 'c' FROM C3) from foo3"), Row(" cccba"))
+      checkAnswer (sql("SELECT TRIM(TRAILING C2 FROM C1) from foo3"), Row("ccccba"))
+      checkAnswer (sql("SELECT TRIM(TRAILING C6 FROM C2) from foo3"), Row("c"))
       // scalastyle:off
-      checkAnswer ( sql("SELECT TRIM(TRAILING 'c' FROM C4) from foo3"), Row("cccbacc数"))
-      checkAnswer ( sql("SELECT TRIM(TRAILING C2 FROM C6) from foo3"), Row("数"))
-      checkAnswer ( sql("SELECT TRIM(TRAILING '数' FROM '数数数数') from foo3"), Row(""))
-      checkAnswer ( sql("SELECT TRIM(TRAILING '敠' FROM '数敠敠敠敠') from foo3"), Row("数"))
-      checkAnswer ( sql("SELECT TRIM(TRAILING 'a' FROM '数aaaaaa') from foo3"), Row("数"))
-      checkAnswer ( sql("SELECT TRIM(TRAILING '搰' FROM 'aaaaaa搰') from foo3"), Row("aaaaaa"))
+      checkAnswer (sql("SELECT TRIM(TRAILING 'c' FROM C4) from foo3"), Row("cccbacc数"))
+      checkAnswer (sql("SELECT TRIM(TRAILING C2 FROM C6) from foo3"), Row("数"))
+      checkAnswer (sql("SELECT TRIM(TRAILING '数' FROM '数数数数') from foo3"), Row(""))
+      checkAnswer (sql("SELECT TRIM(TRAILING '敠' FROM '数敠敠敠敠') from foo3"), Row("数"))
+      checkAnswer (sql("SELECT TRIM(TRAILING 'a' FROM '数aaaaaa') from foo3"), Row("数"))
+      checkAnswer (sql("SELECT TRIM(TRAILING '搰' FROM 'aaaaaa搰') from foo3"), Row("aaaaaa"))
       // scalastyle:on
     }
   }

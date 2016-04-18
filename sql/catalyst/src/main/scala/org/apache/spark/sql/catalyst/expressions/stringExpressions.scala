@@ -373,6 +373,7 @@ case class FindInSet(left: Expression, right: Expression) extends BinaryExpressi
              "> SELECT _FUNC_(TRAILING 'S' FROM 'SSparkSQLS');\n 'SSparkSQL'")
 case class StringTrim(children: Seq[Expression])
   extends Expression with ImplicitCastInputTypes {
+
   require (children.size <= 2 && children.nonEmpty,
     "$prettyName requires at least one argument and no more than two.")
 
@@ -386,22 +387,14 @@ case class StringTrim(children: Seq[Expression])
 
   override def eval(input: InternalRow): Any = {
     val inputs = children.map(_.eval(input).asInstanceOf[UTF8String])
-    if (children.size == 1) {
-      if (inputs(0) == null) {
-        null
-      }
-      else {
-        inputs(0).trim()
-      }
-    } else {
-      if (inputs(1) == null) {
-        null
-      } else if (inputs(0) == null) {
-        null
-      } else {
-        inputs(1).trim(inputs(0))
+    if (inputs(0) != null) {
+      if (children.size == 1) {
+        return inputs(0).trim()
+      } else if (inputs(1) != null) {
+        return inputs(1).trim(inputs(0))
       }
     }
+    null
   }
 
   override protected def genCode(ctx: CodegenContext, ev: ExprCode): String = {
@@ -446,7 +439,6 @@ case class StringTrim(children: Seq[Expression])
   }
 }
 
-
 /**
  * A function that trim the spaces or character from left end for given string.
  */
@@ -455,6 +447,7 @@ case class StringTrim(children: Seq[Expression])
   extended = "> SELECT _FUNC_('    SparkSQL   ');\n 'SparkSQL   '")
 case class StringTrimLeft(children: Seq[Expression])
   extends Expression with ImplicitCastInputTypes {
+
   require (children.size <= 2 && children.nonEmpty,
     "$prettyName requires at least one argument and no more than two.")
 
@@ -468,22 +461,14 @@ case class StringTrimLeft(children: Seq[Expression])
 
   override def eval(input: InternalRow): Any = {
     val inputs = children.map(_.eval(input).asInstanceOf[UTF8String])
-    if (children.size == 1) {
-      if (inputs(0) == null) {
-        null
-      }
-      else {
-        inputs(0).trimLeft()
-      }
-    } else {
-      if (inputs(1) == null) {
-        null
-      } else if (inputs(0) == null) {
-        null
-      } else {
-        inputs(1).trimLeft(inputs(0))
+    if (inputs(0) != null) {
+      if (children.size == 1) {
+        return inputs(0).trimLeft()
+      } else if (inputs(1) != null) {
+        return inputs(1).trimLeft(inputs(0))
       }
     }
+    null
   }
 
   override protected def genCode(ctx: CodegenContext, ev: ExprCode): String = {
@@ -526,8 +511,8 @@ case class StringTrimLeft(children: Seq[Expression])
       s"$prettyName($trimSQL, $tarSQL)"
     }
   }
-
 }
+
 /**
  * A function that trim the spaces or character from right end for given string.
  */
@@ -536,6 +521,7 @@ case class StringTrimLeft(children: Seq[Expression])
   extended = "> SELECT _FUNC_('    SparkSQL   ');\n '    SparkSQL'")
 case class StringTrimRight(children: Seq[Expression])
   extends Expression with ImplicitCastInputTypes {
+
   require (children.size <= 2 && children.nonEmpty,
     "$prettyName requires at least one argument and no more than two.")
 
@@ -549,22 +535,14 @@ case class StringTrimRight(children: Seq[Expression])
 
   override def eval(input: InternalRow): Any = {
     val inputs = children.map(_.eval(input).asInstanceOf[UTF8String])
-    if (children.size == 1) {
-      if (inputs(0) == null) {
-        null
-      }
-      else {
-        inputs(0).trimRight()
-      }
-    } else {
-      if (inputs(1) == null) {
-        null
-      } else if (inputs(0) == null) {
-        null
-      } else {
-        inputs(1).trimRight(inputs(0))
+    if (inputs(0) != null) {
+      if (children.size == 1) {
+        return inputs(0).trimRight()
+      } else if (inputs(1) != null) {
+        return inputs(1).trimRight(inputs(0))
       }
     }
+    null
   }
 
   override protected def genCode(ctx: CodegenContext, ev: ExprCode): String = {

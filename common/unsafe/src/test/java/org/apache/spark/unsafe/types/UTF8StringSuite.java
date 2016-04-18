@@ -491,16 +491,24 @@ public class UTF8StringSuite {
   }
   @Test
   public void trimsChar() {
+    assertEquals(fromString("  hello "), fromString("  hello ").trim(fromString("")));
     assertEquals(fromString("hello"), fromString("  hello ").trim(fromString(" ")));
     assertEquals(fromString("he"), fromString("ooheooo").trim(fromString("o")));
     assertEquals(fromString(""), fromString("ooooooo").trim(fromString("o")));
+    assertEquals(fromString("b"), fromString("b").trim(fromString("o")));
     assertEquals(fromString(" "), fromString(" ooooooo").trim(fromString("o")));
+    assertEquals(fromString("  hello "), fromString("  hello ").trimLeft(fromString("")));
+    assertEquals(fromString(""), fromString("a").trimLeft(fromString("a")));
+    assertEquals(fromString("b"), fromString("b").trimLeft(fromString("a")));
+    assertEquals(fromString("b"), fromString("b").trimLeft(fromString("a")));
+    assertEquals(fromString("ba"), fromString("ba").trimLeft(fromString("a")));
     assertEquals(fromString(""), fromString("aaaaaaa").trimLeft(fromString("a")));
-    assertEquals(fromString("hello "), fromString("  hello ").trimLeft(fromString(" ")));
     assertEquals(fromString("hello"), fromString("oohello").trimLeft(fromString("o")));
-    assertEquals(fromString(" oohello "), fromString(" oohello ").trimLeft(fromString("o")));
     assertEquals(fromString(" "), fromString("oooo ").trimLeft(fromString("o")));
-    assertEquals(fromString(""), fromString("oooo").trimLeft(fromString("o")));
+    assertEquals(fromString("  hello "), fromString("  hello ").trimRight(fromString("")));
+    assertEquals(fromString(""), fromString("a").trimRight(fromString("a")));
+    assertEquals(fromString("b"), fromString("b").trimRight(fromString("a")));
+    assertEquals(fromString("ab"), fromString("ab").trimRight(fromString("a")));
     assertEquals(fromString("  hello"), fromString("  hello ").trimRight(fromString(" ")));
     assertEquals(fromString("oohell"), fromString("oohelloooo").trimRight(fromString("o")));
     assertEquals(fromString(" oohello "), fromString(" oohello ").trimRight(fromString("o")));
@@ -525,8 +533,6 @@ public class UTF8StringSuite {
     assertEquals(fromString("据砖头数数"), fromString("数数数据砖头数数").trimLeft(fromString("数")));
     assertEquals(fromString(" 数数数据砖头数数"), fromString(" 数数数据砖头数数").trimLeft(fromString("数")));
     assertEquals(fromString("数数数据砖头数数"), fromString("aa数数数据砖头数数").trimLeft(fromString("a")));
-    assertEquals(fromString("数数数据砖头数数"), fromString("数数数据砖头数数").trimLeft(fromString("a")));
-    assertEquals(fromString("aa数数数据砖头数数"), fromString("aa数数数据砖头数数").trimLeft(fromString("数")));
     assertEquals(fromString("  数据砖头"), fromString("  数据砖头 ").trimRight(fromString(" ")));
     assertEquals(fromString("数"), fromString("数").trimRight(fromString("a")));
     assertEquals(fromString("a"), fromString("a").trimRight(fromString("数")));
@@ -534,31 +540,8 @@ public class UTF8StringSuite {
     assertEquals(fromString("头"), fromString("头数数数").trimRight(fromString("数")));
     assertEquals(fromString("数数数据砖头"), fromString("数数数据砖头数数").trimRight(fromString("数")));
     assertEquals(fromString("数数数据砖头数数 "), fromString("数数数据砖头数数 ").trimRight(fromString("数")));
-    assertEquals(fromString("aa数数数据砖头数数"), fromString("aa数数数据砖头数数aaa")
-      .trimRight(fromString("a")));
-    assertEquals(fromString("数数数据砖头数数"), fromString("数数数据砖头数数").trimRight(fromString("a")));
-    assertEquals(fromString("aa数数数据砖头数数aa"), fromString("aa数数数据砖头数数aa")
-      .trimRight(fromString("数")));
-    assertEquals(fromString("数据砖头"), fromString("数据砖头").trim(fromString(" ")));
-    assertEquals(fromString("数据砖头"), fromString("aaa数据砖头aaaaa").trim(fromString("a")));
-    assertEquals(fromString("数据砖头aaaaa "), fromString("aaa数据砖头aaaaa ").trim(fromString("a")));
-    assertEquals(fromString(" aaa数据砖头"), fromString(" aaa数据砖头aaaaa").trim(fromString("a")));
-    assertEquals(fromString(" aaa数据砖头aaaaa"), fromString(" aaa数据砖头aaaaa").trim(fromString("数")));
-    assertEquals(fromString("数据砖头"), fromString("数据砖头").trimLeft(fromString(" ")));
-    assertEquals(fromString("数据砖头aaaaa"), fromString("aaa数据砖头aaaaa").trimLeft(fromString("a")));
-    assertEquals(fromString(" aaa数据砖头aaaaa"), fromString(" aaa数据砖头aaaaa")
-            .trimLeft(fromString("a")));
-    assertEquals(fromString("数据砖头aaaaa"), fromString("数据砖头aaaaa").trimLeft(fromString("a")));
-    assertEquals(fromString("aaa数据砖头aaaaa"), fromString("aaa数据砖头aaaaa")
-            .trimLeft(fromString("数")));
-    assertEquals(fromString("数据砖头"), fromString("数据砖头").trimRight(fromString(" ")));
-    assertEquals(fromString("数"), fromString("数").trimRight(fromString("a")));
-    assertEquals(fromString("a"), fromString("a").trimRight(fromString("数")));
-    assertEquals(fromString("aaa数据砖头"), fromString("aaa数据砖头aaaaa").trimRight(fromString("a")));
-    assertEquals(fromString("aaa数据砖头aaaaa "), fromString("aaa数据砖头aaaaa ")
-            .trimRight(fromString("a")));
-    assertEquals(fromString("数据砖头aaaaa砖"), fromString("数据砖头aaaaa砖").trimRight(fromString("a")));
-    assertEquals(fromString("aaa数据砖头aaaaa"), fromString("aaa数据砖头aaaaa")
-            .trimRight(fromString("数")));
+    assertEquals(fromString("aa数数数"), fromString("aa数数数aaa").trimRight(fromString("a")));
+    assertEquals(fromString("数数"), fromString("数数").trimRight(fromString("a")));
+    assertEquals(fromString("数数aa"), fromString("数数aa").trimRight(fromString("数")));
   }
 }

@@ -487,7 +487,6 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     } else if (trimChar.numBytes == 0) {
       return this;
     }
-
     int s = 0;
     int numTrimBytes = trimChar.numBytes;
     int e = this.numBytes-numTrimBytes;
@@ -512,7 +511,6 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     if (numTrimBytes > this.numBytes) {
       e = this.numBytes -1;
     }
-
     if (s > e) {
       // empty string
       return UTF8String.fromBytes(new byte[0]);
@@ -536,6 +534,8 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
   public UTF8String trimLeft(UTF8String trimChar) {
     if (trimChar == null) {
         return null;
+    } else if (trimChar.numBytes == 0) {
+        return this;
     }
     int s = 0;
     int numTrimBytes = trimChar.numBytes;
@@ -546,7 +546,6 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
       else
         s += numTrimBytes;
     }
-
     if (s == this.numBytes) {
       // empty string
       return UTF8String.fromBytes(new byte[0]);
@@ -574,7 +573,6 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     } else if (trimChar.numBytes == 0) {
       return this;
     }
-
     int numTrimBytes = trimChar.numBytes;
     int e = this.numBytes-numTrimBytes;
     // skip all the continue matching character in the right side
@@ -589,7 +587,6 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     if (numTrimBytes > this.numBytes) {
        e = this.numBytes -1;
     }
-
     if (e < 0) {
       // empty string
       return UTF8String.fromBytes(new byte[0]);
@@ -598,7 +595,7 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     }
   }
 
-    public UTF8String reverse() {
+  public UTF8String reverse() {
     byte[] result = new byte[this.numBytes];
 
     int i = 0; // position in byte
