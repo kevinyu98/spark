@@ -2312,6 +2312,7 @@ object functions {
    */
   def trim(trimChar: String, e: Column): Column =
     withExpr { StringTrim(Seq(Literal(trimChar), e.expr))}
+
   /**
    * Converts a string column to upper case.
    *

@@ -2468,6 +2468,7 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
           Row("r3c1x", "r3c2", "t1r3c3", "r3c2", "t1r3c3") :: Nil)
     }
   }
+
   test("TRIM function-BOTH") {
     checkAnswer(sql("SELECT TRIM(BOTH ' ' FROM '  bc  ' )"), Row("bc") :: Nil)
     checkAnswer(sql("SELECT TRIM(BOTH 'c' FROM 'ccccccc' )"), Row("") :: Nil)
@@ -2479,6 +2480,7 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
     checkAnswer(sql("SELECT TRIM(BOTH 'c' FROM ' ccccbcc' )"), Row(" ccccb") :: Nil)
     checkAnswer(sql("SELECT TRIM(BOTH 'c' FROM 'ccccbcc ' )"), Row("bcc ") :: Nil)
   }
+
   test("TRIM function-LEADING") {
     checkAnswer(sql("SELECT trim(LEADING ' ' FROM '  SparkSql ')"), Row("SparkSql ") :: Nil)
     checkAnswer(sql("SELECT TRIM(LEADING 'c' FROM 'ccccccc' )"), Row("") :: Nil)
@@ -2491,6 +2493,7 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
     checkAnswer(sql("SELECT TRIM(LEADING 'c' FROM ' ccccbcc')"), Row(" ccccbcc") :: Nil)
     checkAnswer(sql("SELECT TRIM(LEADING 'c' FROM 'ccccbcc ')"), Row("bcc ") :: Nil)
   }
+  
   test("TRIM function-TRAILING") {
     checkAnswer(sql("SELECT trim(TRAILING ' ' FROM '  SparkSql ')"), Row("  SparkSql") :: Nil)
     checkAnswer(sql("SELECT TRIM(TRAILING 'c' FROM 'ccccccc' )"), Row("") :: Nil)
