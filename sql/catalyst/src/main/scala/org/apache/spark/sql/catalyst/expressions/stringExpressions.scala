@@ -398,33 +398,23 @@ case class StringTrim(children: Seq[Expression])
   }
 
   override protected def genCode(ctx: CodegenContext, ev: ExprCode): String = {
-    if (children.size == 1) {
-      val evals = children.map(_.gen(ctx))
-      val inputs = evals.map { eval =>
-        s"${eval.isNull} ? null : ${eval.value}"
-      }
-      evals.map(_.code).mkString("\n") +
-      s"""
-      boolean ${ev.isNull} = false;
-      UTF8String ${ev.value} = ${inputs(0)}.trim();
-      if (${ev.value} == null) {
-        ${ev.isNull} = true;
-      }
-      """
-    } else {
-      val evals = children.map(_.gen(ctx))
-      val inputs = evals.map { eval =>
-        s"${eval.isNull} ? null : ${eval.value}"
-      }
-      evals.map(_.code).mkString("\n") +
-        s"""
-      boolean ${ev.isNull} = false;
-      UTF8String ${ev.value} = ${inputs(1)}.trim(${inputs(0)});
-      if (${ev.value} == null) {
-        ${ev.isNull} = true;
-      }
-      """
+    val evals = children.map(_.gen(ctx))
+    val inputs = evals.map { eval =>
+      s"${eval.isNull} ? null : ${eval.value}"
     }
+    val getTrimFunction = if (children.size == 1) {
+      s"""UTF8String ${ev.value} = ${inputs(0)}.trim();"""
+    } else {
+      s"""UTF8String ${ev.value} = ${inputs(1)}.trim(${inputs(0)});"""
+    }
+    evals.map(_.code).mkString("\n") +
+    s"""
+    boolean ${ev.isNull} = false;
+    ${getTrimFunction};
+    if (${ev.value} == null) {
+      ${ev.isNull} = true;
+    }
+    """
   }
 
   override def sql: String = {
@@ -472,33 +462,23 @@ case class StringTrimLeft(children: Seq[Expression])
   }
 
   override protected def genCode(ctx: CodegenContext, ev: ExprCode): String = {
-    if (children.size == 1) {
-      val evals = children.map(_.gen(ctx))
-      val inputs = evals.map { eval =>
-        s"${eval.isNull} ? null : ${eval.value}"
-      }
-      evals.map(_.code).mkString("\n") +
-        s"""
-      boolean ${ev.isNull} = false;
-      UTF8String ${ev.value} = ${inputs(0)}.trimLeft();
-      if (${ev.value} == null) {
-        ${ev.isNull} = true;
-      }
-    """
-    } else {
-      val evals = children.map(_.gen(ctx))
-      val inputs = evals.map { eval =>
-        s"${eval.isNull} ? null : ${eval.value}"
-      }
-      evals.map(_.code).mkString("\n") +
-        s"""
-      boolean ${ev.isNull} = false;
-      UTF8String ${ev.value} = ${inputs(1)}.trimLeft(${inputs(0)});
-      if (${ev.value} == null) {
-        ${ev.isNull} = true;
-      }
-    """
+    val evals = children.map(_.gen(ctx))
+    val inputs = evals.map { eval =>
+      s"${eval.isNull} ? null : ${eval.value}"
     }
+    val getTrimLeftFunction = if (children.size == 1) {
+      s"""UTF8String ${ev.value} = ${inputs(0)}.trimLeft();"""
+    } else {
+      s"""UTF8String ${ev.value} = ${inputs(1)}.trimLeft(${inputs(0)});"""
+    }
+    evals.map(_.code).mkString("\n") +
+      s"""
+    boolean ${ev.isNull} = false;
+    ${getTrimLeftFunction};
+    if (${ev.value} == null) {
+      ${ev.isNull} = true;
+    }
+    """
   }
 
   override def sql: String = {
@@ -506,8 +486,8 @@ case class StringTrimLeft(children: Seq[Expression])
       val childrenSQL = children.map(_.sql).mkString(", ")
       s"$prettyName($childrenSQL)"
     } else {
-      val tarSQL = children(1).map(_.sql).mkString(", ")
       val trimSQL = children(0).map(_.sql).mkString(", ")
+      val tarSQL = children(1).map(_.sql).mkString(", ")
       s"$prettyName($trimSQL, $tarSQL)"
     }
   }
@@ -546,33 +526,23 @@ case class StringTrimRight(children: Seq[Expression])
   }
 
   override protected def genCode(ctx: CodegenContext, ev: ExprCode): String = {
-    if (children.size == 1) {
-      val evals = children.map(_.gen(ctx))
-      val inputs = evals.map { eval =>
-        s"${eval.isNull} ? null : ${eval.value}"
-      }
-      evals.map(_.code).mkString("\n") +
-        s"""
-      boolean ${ev.isNull} = false;
-      UTF8String ${ev.value} = ${inputs(0)}.trimRight();
-      if (${ev.value} == null) {
-        ${ev.isNull} = true;
-      }
-    """
-    } else {
-      val evals = children.map(_.gen(ctx))
-      val inputs = evals.map { eval =>
-        s"${eval.isNull} ? null : ${eval.value}"
-      }
-      evals.map(_.code).mkString("\n") +
-        s"""
-      boolean ${ev.isNull} = false;
-      UTF8String ${ev.value} = ${inputs(1)}.trimRight(${inputs(0)});
-      if (${ev.value} == null) {
-        ${ev.isNull} = true;
-      }
-    """
+    val evals = children.map(_.gen(ctx))
+    val inputs = evals.map { eval =>
+      s"${eval.isNull} ? null : ${eval.value}"
     }
+    val getTrimRightFunction = if (children.size == 1) {
+      s"""UTF8String ${ev.value} = ${inputs(0)}.trimRight();"""
+    } else {
+      s"""UTF8String ${ev.value} = ${inputs(1)}.trimRight(${inputs(0)});"""
+    }
+    evals.map(_.code).mkString("\n") +
+      s"""
+    boolean ${ev.isNull} = false;
+    ${getTrimRightFunction};
+    if (${ev.value} == null) {
+      ${ev.isNull} = true;
+    }
+    """
   }
 
   override def sql: String = {
@@ -580,8 +550,8 @@ case class StringTrimRight(children: Seq[Expression])
       val childrenSQL = children.map(_.sql).mkString(", ")
       s"$prettyName($childrenSQL)"
     } else {
-      val tarSQL = children(1).map(_.sql).mkString(", ")
       val trimSQL = children(0).map(_.sql).mkString(", ")
+      val tarSQL = children(1).map(_.sql).mkString(", ")
       s"$prettyName($trimSQL, $tarSQL)"
     }
   }

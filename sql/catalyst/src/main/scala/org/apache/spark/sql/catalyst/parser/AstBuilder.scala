@@ -1025,10 +1025,9 @@ class AstBuilder extends SqlBaseBaseVisitor[AnyRef] with Logging {
    */
   override def visitFunctionCall(ctx: FunctionCallContext): Expression = withOrigin(ctx) {
     // Create the function call.
-    val name =
-      Option(ctx.operator)
-        .map( o => getTrimFuncName(
-          ctx, o.getType, ctx.trimChar.getText)) getOrElse(ctx.qualifiedName.getText)
+    val name = Option(ctx.trimOperator).map { o =>
+      getTrimFuncName(ctx, o.getType, string(ctx.trimChar.getText))
+    }.getOrElse(ctx.qualifiedName.getText)
     val isDistinct = Option(ctx.setQuantifier()).exists(_.DISTINCT != null)
     val arguments = ctx.expression().asScala.map(expression) match {
       case Seq(UnresolvedStar(None)) if name.toLowerCase == "count" && !isDistinct =>
@@ -1055,14 +1054,15 @@ class AstBuilder extends SqlBaseBaseVisitor[AnyRef] with Logging {
   private def getTrimFuncName(ctx: FunctionCallContext, optType: Int, trimChar: String): String = {
     if (ctx.qualifiedName.getText.toLowerCase != "trim") {
       throw new ParseException(s"doesn't support this $optType.", ctx)
-    } else if (string(trimChar).length > 1) {
+    }
+    if (trimChar.length > 1) {
       throw new ParseException(s"trim Character can only be 1 character.", ctx)
     }
     optType match {
-       case (SqlBaseParser.BOTH) => "trim"
-       case (SqlBaseParser.LEADING) => "ltrim"
-       case (SqlBaseParser.TRAILING) => "rtrim"
-       case (_) => throw new ParseException(s"doesn't support this $optType.", ctx)
+       case SqlBaseParser.BOTH => "trim"
+       case SqlBaseParser.LEADING => "ltrim"
+       case SqlBaseParser.TRAILING => "rtrim"
+       case _ => throw new ParseException(s"doesn't support this $optType.", ctx)
     }
   }
 

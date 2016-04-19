@@ -462,8 +462,6 @@ class StringExpressionsSuite extends SparkFunSuite with ExpressionEvalHelper {
     checkEvaluation(StringTrimLeft(Seq("a", Literal("aa"))), "", create_row(" abdef "))
     checkEvaluation(StringTrimLeft(Seq("a", Literal("aa "))), " ", create_row(" abdef "))
     checkEvaluation(StringTrimLeft(Seq("a", Literal("aabbaaaa"))), "bbaaaa", create_row(" abdef "))
-    checkEvaluation(StringTrimLeft(Seq("a", Literal(" aabbaaaa ")))
-      , " aabbaaaa ", create_row(" abdef "))
     checkEvaluation(StringTrimLeft(Seq(s)), "abdef ", create_row(" abdef "))
     checkEvaluation(StringTrimLeft(Seq("a", s)), "bdefa", create_row("abdefa"))
     checkEvaluation(StringTrimLeft(Seq("a", s)), " aaabdefaaaa", create_row(" aaabdefaaaa"))
@@ -472,8 +470,6 @@ class StringExpressionsSuite extends SparkFunSuite with ExpressionEvalHelper {
     checkEvaluation(StringTrimRight(Seq("a", Literal("a"))), "", create_row(" abdef "))
     checkEvaluation(StringTrimRight(Seq("a", Literal("aa"))), "", create_row(" abdef "))
     checkEvaluation(StringTrimRight(Seq("a", Literal("aabbaaaa"))), "aabb", create_row(" abdef "))
-    checkEvaluation(StringTrimRight(Seq("a", Literal(" aabbaaaa ")))
-      , " aabbaaaa ", create_row(" abdef "))
     checkEvaluation(StringTrimRight(Seq(s)), " abdef", create_row(" abdef "))
     checkEvaluation(StringTrimRight(Seq("a", s)), "abdef", create_row("abdefa"))
     checkEvaluation(StringTrimRight(Seq("a", s)), " aaabdef", create_row(" aaabdefaaaa"))
@@ -487,7 +483,6 @@ class StringExpressionsSuite extends SparkFunSuite with ExpressionEvalHelper {
     checkEvaluation(StringTrimRight(Seq(s)), "  花花世界", create_row("  花花世界 "))
     checkEvaluation(StringTrimRight(Seq("花", s)), "花花世界", create_row("花花世界花花"))
     checkEvaluation(StringTrimRight(Seq("花", s)), "", create_row("花花花花"))
-    checkEvaluation(StringTrimRight(Seq("花", s)), " 花花世界", create_row(" 花花世界花花"))
     checkEvaluation(StringTrimRight(Seq("花", s)), " 花花世界花花 ", create_row(" 花花世界花花 "))
     checkEvaluation(StringTrimRight(Seq("a", s)), "aa花花世界花花", create_row("aa花花世界花花aa"))
     checkEvaluation(StringTrimRight(Seq("a", s)), "aa花花世界花花", create_row("aa花花世界花花"))
@@ -512,8 +507,6 @@ class StringExpressionsSuite extends SparkFunSuite with ExpressionEvalHelper {
       (Literal.create(null, StringType)))), null)
     checkEvaluation(StringTrim(Seq((Literal(" aa  ")),
       (Literal.create(null, StringType)))), null)
-    checkEvaluation(StringTrim(Seq(Literal.create(null, StringType),
-      (Literal(" aa  ")))), null)
     checkEvaluation(StringTrimLeft(Seq(Literal.create(null, StringType))), null)
     checkEvaluation(StringTrimLeft(Seq(Literal.create(null, StringType),
       (Literal.create(null, StringType)))), null)

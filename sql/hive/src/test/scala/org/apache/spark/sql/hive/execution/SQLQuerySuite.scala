@@ -1871,7 +1871,6 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
     checkAnswer (sql("SELECT TRIM(BOTH '数' FROM '数数数') from foo"), Row(""))
     checkAnswer (sql("SELECT TRIM(BOTH '敠' FROM '敠敠数敠敠') from foo"), Row("数"))
     checkAnswer (sql("SELECT TRIM(BOTH '搠' FROM '数') from foo"), Row("数"))
-    checkAnswer (sql("SELECT TRIM(BOTH '搰' FROM '数') from foo"), Row("数"))
     checkAnswer (sql("Select TRIM(BOTH '数' FROM C5) from foo"), Row("据砖头"))
     checkAnswer (sql("SELECT TRIM(BOTH 'c' FROM C4) from foo"), Row("bacc数"))
     checkAnswer (sql("SELECT TRIM(BOTH '数' FROM C4) from foo"), Row("cccbacc"))
@@ -1897,12 +1896,11 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
       checkAnswer (sql("SELECT TRIM(LEADING 'c' FROM C4) from foo2"), Row("数bacc数"))
       checkAnswer (sql("SELECT TRIM(LEADING C2 FROM C6) from foo2"), Row("数"))
       checkAnswer (sql("SELECT TRIM(LEADING '数' FROM '数数数敠') from foo2"), Row("敠"))
-      checkAnswer (sql("SELECT TRIM(LEADING '敠' FROM '敠敠数敠') from foo2"), Row("数敠"))
       checkAnswer (sql("SELECT TRIM(LEADING 'a' FROM 'aa数aa') from foo2"), Row("数aa"))
-      checkAnswer (sql("SELECT TRIM(LEADING '搰' FROM '搰搰数') from foo2"), Row("数"))
       // scalastyle:on
     }
   }
+
   test("TRIM function-Trailing") {
     withTable("foo3") {
       sql("create table foo3 (c1 string, c2 char(1), c3 string, c4 string, c5 string, c6 string )")
@@ -1926,5 +1924,4 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
       // scalastyle:on
     }
   }
-
 }

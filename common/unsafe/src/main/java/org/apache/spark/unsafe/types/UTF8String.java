@@ -482,13 +482,11 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
    * @param trimChar the trim character
   */
   public UTF8String trim (UTF8String trimChar) {
-    if (trimChar == null) {
-      return null;
-    } else if (trimChar.numBytes == 0) {
-      return this;
-    }
     int s = 0;
     int numTrimBytes = trimChar.numBytes;
+    if (numTrimBytes == 0) {
+      return this;
+    }
     int e = this.numBytes-numTrimBytes;
     // skip all the continue matching character in the left side
     // s is the index for the matching character in the target string
@@ -529,13 +527,11 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
   }
 
   public UTF8String trimLeft(UTF8String trimChar) {
-    if (trimChar == null) {
-        return null;
-    } else if (trimChar.numBytes == 0) {
-        return this;
-    }
     int s = 0;
     int numTrimBytes = trimChar.numBytes;
+    if (numTrimBytes == 0) {
+      return this;
+    }
     // skip all the continue matching character in the left side
     while(s < this.numBytes && s == this.find(trimChar, s)) {
       s += numTrimBytes;
@@ -562,12 +558,10 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
   }
 
   public UTF8String trimRight(UTF8String trimChar) {
-    if (trimChar == null) {
-      return null;
-    } else if (trimChar.numBytes == 0) {
+    int numTrimBytes = trimChar.numBytes;
+    if (numTrimBytes == 0) {
       return this;
     }
-    int numTrimBytes = trimChar.numBytes;
     int e = this.numBytes-numTrimBytes;
     // skip all the continue matching character in the right side
     while (e >=0 ) {
