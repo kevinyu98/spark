@@ -2470,6 +2470,11 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
   }
 
   test("TRIM function-BOTH") {
+    val ae = intercept[AnalysisException]{
+      sql("SELECT TRIM(BOTH 'aa' FROM 'aabcaa' )").collect()
+      }
+    assert(ae.getMessage contains
+      "trim Character aa is great than 1 character.")
     checkAnswer(
       sql("SELECT TRIM(BOTH '' FROM '  bc  ' )"), Row("  bc  ") :: Nil)
     checkAnswer(
@@ -2491,6 +2496,11 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
   }
 
   test("TRIM function-LEADING") {
+    val ae = intercept[AnalysisException]{
+      sql("SELECT TRIM(LEADING 'aa' FROM 'aabcaa' )").collect()
+      }
+    assert(ae.getMessage contains
+      "trim Character aa is great than 1 character.")
     checkAnswer(
       sql("SELECT TRIM(LEADING '' FROM '  bc  ' )"), Row("  bc  ") :: Nil)
     checkAnswer(
@@ -2514,6 +2524,11 @@ class SQLQuerySuite extends QueryTest with SharedSQLContext {
   }
 
   test("TRIM function-TRAILING") {
+    val ae = intercept[AnalysisException]{
+      sql("SELECT TRIM(TRAILING 'aa' FROM 'aabcaa' )").collect()
+      }
+    assert(ae.getMessage contains
+      "trim Character aa is great than 1 character.")
     checkAnswer(
       sql("SELECT TRIM(TRAILING '' FROM '  bc  ' )"), Row("  bc  ") :: Nil)
     checkAnswer(

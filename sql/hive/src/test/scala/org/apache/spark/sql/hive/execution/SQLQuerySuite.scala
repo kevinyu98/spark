@@ -1851,76 +1851,127 @@ class SQLQuerySuite extends QueryTest with SQLTestUtils with TestHiveSingleton {
   }
 
   test("TRIM function-BOTH") {
-    withTable("foo") {
-      sql("create table foo (c1 string, c2 char(1), c3 string, c4 string, c5 string, c6 string )")
+    withTable("trimBoth", "trimStrut") {
+      sql("create table trimBoth (c1 string, c2 char(1), c3 string, c4 string, " +
+        "c5 string, c6 string)")
       // scalastyle:off
-      sql("insert into foo select 'cccccc', 'c', ' cccbacc', 'cccbacc数', '数据砖头', '数'")
+      sql("insert into trimBoth select 'cccccc', 'c', ' cccbacc', 'cccbacc数', '数据砖头', '数'")
       // scalastyle:on
-      val e = intercept[AnalysisException] {
-        sql("SELECT TRIM('c', C1, 'd') from foo")
+      sql("create table trimStrut (c1 struct<n1: int, n2:string>, c2 string)")
+      sql("insert into trimStrut values ((100, 'abc'), 'ABC')")
+
+      intercept[AnalysisException] {
+        sql("SELECT TRIM('c', C1, 'd') from trimBoth")
       }
-    checkAnswer (sql("SELECT TRIM(C2, C1) from foo"), Row(""))
-    checkAnswer (sql("SELECT TRIM(BOTH C2 FROM C1) from foo"), Row(""))
-    checkAnswer (sql("SELECT TRIM(BOTH C6 FROM C2) from foo"), Row("c"))
-    checkAnswer (sql("SELECT TRIM(BOTH 'c' FROM C1) from foo"), Row(""))
-    checkAnswer (sql("SELECT TRIM(BOTH 'c' FROM C2) from foo"), Row(""))
-    checkAnswer (sql("SELECT TRIM(BOTH 'c' FROM C3) from foo"), Row(" cccba"))
+      intercept[AnalysisException] {
+       sql("SELECT TRIM('cc', C1) from trimBoth").collect
+      }
+      intercept[AnalysisException] {
+       sql("SELECT TRIM(C2, C1) from trimBoth").collect
+      }
+      intercept[AnalysisException] {
+       sql("SELECT TRIM(BOTH C2 FROM C1) from trimBoth").collect
+      }
+      intercept[AnalysisException] {
+        sql("select trim(c1,c2) from trimStrut")
+      }
+      intercept[AnalysisException] {
+        sql("select trim(c2,c1) from trimStrut")
+      }
+
+    checkAnswer (sql("SELECT TRIM(BOTH 'c' FROM C1) from trimBoth"), Row(""))
+    checkAnswer (sql("SELECT TRIM(BOTH 'c' FROM C2) from trimBoth"), Row(""))
+    checkAnswer (sql("SELECT TRIM(BOTH 'c' FROM C3) from trimBoth"), Row(" cccba"))
     // scalastyle:off
     // non ascii characters are not allowed in the source code, so we disable the scalastyle.
-    checkAnswer (sql("SELECT TRIM(BOTH C2 FROM C6) from foo"), Row("数"))
-    checkAnswer (sql("SELECT TRIM(BOTH '数' FROM '数数数') from foo"), Row(""))
-    checkAnswer (sql("SELECT TRIM(BOTH '敠' FROM '敠敠数敠敠') from foo"), Row("数"))
-    checkAnswer (sql("SELECT TRIM(BOTH '搠' FROM '数') from foo"), Row("数"))
-    checkAnswer (sql("Select TRIM(BOTH '数' FROM C5) from foo"), Row("据砖头"))
-    checkAnswer (sql("SELECT TRIM(BOTH 'c' FROM C4) from foo"), Row("bacc数"))
-    checkAnswer (sql("SELECT TRIM(BOTH '数' FROM C4) from foo"), Row("cccbacc"))
+    checkAnswer (sql("SELECT TRIM(BOTH '数' FROM '数数数') from trimBoth"), Row(""))
+    checkAnswer (sql("SELECT TRIM(BOTH '敠' FROM '敠敠数敠敠') from trimBoth"), Row("数"))
+    checkAnswer (sql("SELECT TRIM(BOTH '搠' FROM '数') from trimBoth"), Row("数"))
+    checkAnswer (sql("Select TRIM(BOTH '数' FROM C5) from trimBoth"), Row("据砖头"))
+    checkAnswer (sql("SELECT TRIM(BOTH 'c' FROM C4) from trimBoth"), Row("bacc数"))
+    checkAnswer (sql("SELECT TRIM(BOTH '数' FROM C4) from trimBoth"), Row("cccbacc"))
     // scalastyle:on
     }
   }
 
   test("TRIM function-Leading") {
-    withTable("foo2") {
-      sql("create table foo2 (c1 string, c2 char(1), c3 string, c4 string, c5 string, c6 string )")
+    withTable("trimLead", "trimStrut") {
+      sql("create table trimLead (c1 string, c2 char(1), c3 string, c4 string, " +
+        "c5 string, c6 string )")
       // scalastyle:off
-      sql("insert into foo2 select 'cccccc', 'c', ' cccbacc', 'ccc数bacc数', '数据砖头', '数'")
+      sql("insert into trimLead select 'cccccc', 'c', ' cccbacc', 'ccc数bacc数', '数据砖头', '数'")
       // scalastyle:on
-      intercept[AnalysisException] { sql("SELECT TRIM(C1, C2, C3) from foo2")}
+      sql("create table trimStrut (c1 struct<n1: int, n2:string>, c2 string)")
+      sql("insert into trimStrut values ((100, 'abc'), 'ABC')")
 
-      checkAnswer (sql("SELECT LTRIM(C2,C1) from foo2"), Row(""))
-      checkAnswer (sql("SELECT TRIM(LEADING 'c' FROM C1) from foo2"), Row(""))
-      checkAnswer (sql("SELECT TRIM(LEADING 'c' FROM C2) from foo2"), Row(""))
-      checkAnswer (sql("SELECT TRIM(LEADING 'c' FROM C3) from foo2"), Row(" cccbacc"))
-      checkAnswer (sql("SELECT TRIM(LEADING C2 FROM C1) from foo2"), Row(""))
-      checkAnswer (sql("SELECT TRIM(LEADING C6 FROM C2) from foo2"), Row("c"))
+      intercept[AnalysisException] {
+        sql("SELECT LTRIM(C1, C2, C3) from trimLead")
+      }
+      intercept[AnalysisException] {
+       sql("SELECT LTRIM('cc', C1) from trimBoth").collect
+      }
+      intercept[AnalysisException] {
+       sql("SELECT LTRIM(C2, C1) from trimBoth").collect
+      }
+      intercept[AnalysisException] {
+       sql("SELECT LTRIM(BOTH C2 FROM C1) from trimBoth").collect
+      }
+      intercept[AnalysisException] {
+        sql("SELECT LTRIM(C1,C2) FROM trimStrut")
+      }
+      intercept[AnalysisException] {
+        sql("SELECT LTRIM(C2,C1) FROM trimStrut")
+      }
+
+      checkAnswer (sql("SELECT TRIM(LEADING 'c' FROM C1) from trimLead"), Row(""))
+      checkAnswer (sql("SELECT TRIM(LEADING 'c' FROM C2) from trimLead"), Row(""))
+      checkAnswer (sql("SELECT TRIM(LEADING 'c' FROM C3) from trimLead"), Row(" cccbacc"))
       // scalastyle:off
-      checkAnswer (sql("SELECT TRIM(LEADING 'c' FROM C4) from foo2"), Row("数bacc数"))
-      checkAnswer (sql("SELECT TRIM(LEADING C2 FROM C6) from foo2"), Row("数"))
-      checkAnswer (sql("SELECT TRIM(LEADING '数' FROM '数数数敠') from foo2"), Row("敠"))
-      checkAnswer (sql("SELECT TRIM(LEADING 'a' FROM 'aa数aa') from foo2"), Row("数aa"))
+      checkAnswer (sql("SELECT TRIM(LEADING 'c' FROM C4) from trimLead"), Row("数bacc数"))
+      checkAnswer (sql("SELECT TRIM(LEADING '数' FROM '数数数敠') from trimLead"), Row("敠"))
+      checkAnswer (sql("SELECT TRIM(LEADING 'a' FROM 'aa数aa') from trimLead"), Row("数aa"))
       // scalastyle:on
     }
   }
 
   test("TRIM function-Trailing") {
-    withTable("foo3") {
-      sql("create table foo3 (c1 string, c2 char(1), c3 string, c4 string, c5 string, c6 string )")
+    withTable("trimTrail", "trimStrut") {
+      sql("create table trimTrail (c1 string, c2 char(1), c3 string, c4 string, " +
+        "c5 string, c6 string )")
       // scalastyle:off
-      sql("insert into foo3 select 'ccccbacc', 'c', ' cccbacc', 'cccbacc数', '数据砖头', '数'")
+      sql("insert into trimTrail select 'ccccbacc', 'c', ' cccbacc', 'cccbacc数', '数据砖头', '数'")
       // scalastyle:on
-      intercept[AnalysisException] { sql("SELECT TRIM(TRAILING C1, C2, C3) from foo3")}
-      checkAnswer (sql("SELECT RTRIM(C2, C1) from foo3"), Row("ccccba"))
-      checkAnswer (sql("SELECT TRIM(TRAILING 'c' FROM C1) from foo3"), Row("ccccba"))
-      checkAnswer (sql("SELECT TRIM(TRAILING 'c' FROM C2) from foo3"), Row(""))
-      checkAnswer (sql("SELECT TRIM(TRAILING 'c' FROM C3) from foo3"), Row(" cccba"))
-      checkAnswer (sql("SELECT TRIM(TRAILING C2 FROM C1) from foo3"), Row("ccccba"))
-      checkAnswer (sql("SELECT TRIM(TRAILING C6 FROM C2) from foo3"), Row("c"))
+      sql("create table trimStrut (c1 struct<n1: int, n2:string>, c2 string)")
+      sql("insert into trimStrut values ((100, 'abc'), 'ABC')")
+
+      intercept[AnalysisException] {
+        sql("SELECT RTRIM(TRAILING C1, C2, C3) from trimTrail")
+      }
+      intercept[AnalysisException] {
+       sql("SELECT RTRIM('cc', C1) from trimBoth").collect
+      }
+      intercept[AnalysisException] {
+       sql("SELECT RTRIM(C2, C1) from trimBoth").collect
+      }
+      intercept[AnalysisException] {
+       sql("SELECT RTRIM(BOTH C2 FROM C1) from trimBoth").collect
+      }
+      intercept[AnalysisException] {
+        sql("SELECT RTRIM(C1,C2) FROM trimStrut")
+      }
+      intercept[AnalysisException] {
+        sql("SELECT RTRIM(C2,C1) FROM trimStrut")
+      }
+
+      checkAnswer (sql("SELECT TRIM(TRAILING 'c' FROM C1) from trimTrail"), Row("ccccba"))
+      checkAnswer (sql("SELECT TRIM(TRAILING 'c' FROM C2) from trimTrail"), Row(""))
+      checkAnswer (sql("SELECT TRIM(TRAILING 'c' FROM C3) from trimTrail"), Row(" cccba"))
       // scalastyle:off
-      checkAnswer (sql("SELECT TRIM(TRAILING 'c' FROM C4) from foo3"), Row("cccbacc数"))
-      checkAnswer (sql("SELECT TRIM(TRAILING C2 FROM C6) from foo3"), Row("数"))
-      checkAnswer (sql("SELECT TRIM(TRAILING '数' FROM '数数数数') from foo3"), Row(""))
-      checkAnswer (sql("SELECT TRIM(TRAILING '敠' FROM '数敠敠敠敠') from foo3"), Row("数"))
-      checkAnswer (sql("SELECT TRIM(TRAILING 'a' FROM '数aaaaaa') from foo3"), Row("数"))
-      checkAnswer (sql("SELECT TRIM(TRAILING '搰' FROM 'aaaaaa搰') from foo3"), Row("aaaaaa"))
+      checkAnswer (sql("SELECT TRIM(TRAILING 'c' FROM C4) from trimTrail"), Row("cccbacc数"))
+      checkAnswer (sql("SELECT TRIM(TRAILING '数' FROM '数数数数') from trimTrail"), Row(""))
+      checkAnswer (sql("SELECT TRIM(TRAILING '敠' FROM '数敠敠敠敠') from trimTrail"), Row("数"))
+      checkAnswer (sql("SELECT TRIM(TRAILING 'a' FROM '数aaaaaa') from trimTrail"), Row("数"))
+      checkAnswer (sql("SELECT TRIM(TRAILING '搰' FROM 'aaaaaa搰') from trimTrail"), Row("aaaaaa"))
       // scalastyle:on
     }
   }

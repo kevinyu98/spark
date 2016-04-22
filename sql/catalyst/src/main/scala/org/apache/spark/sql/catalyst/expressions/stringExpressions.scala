@@ -20,6 +20,7 @@ package org.apache.spark.sql.catalyst.expressions
 import java.text.{DecimalFormat, DecimalFormatSymbols}
 import java.util.{HashMap, Locale, Map => JMap}
 
+import org.apache.spark.sql.AnalysisException
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.expressions.codegen._
 import org.apache.spark.sql.catalyst.util.ArrayData
@@ -368,6 +369,7 @@ case class FindInSet(left: Expression, right: Expression) extends BinaryExpressi
 @ExpressionDescription(
   usage = "_FUNC_(str) - Removes the leading and trailing space characters or char from str.",
   extended = "> SELECT _FUNC_('    SparkSQL   ');\n 'SparkSQL'\n" +
+             "> SELECT _FUNC_('S', 'SSparkSQLS');\n 'parkSQL'\n" +
              "> SELECT _FUNC_(BOTH 'S' FROM 'SSparkSQLS');\n 'parkSQL'\n" +
              "> SELECT _FUNC_(LEADING 'S' FROM 'SSparkSQLS');\n 'parkSQLS'\n" +
              "> SELECT _FUNC_(TRAILING 'S' FROM 'SSparkSQLS');\n 'SSparkSQL'")
@@ -391,13 +393,22 @@ case class StringTrim(children: Seq[Expression])
       if (children.size == 1) {
         return inputs(0).trim()
       } else if (inputs(1) != null) {
-        return inputs(1).trim(inputs(0))
+        if (inputs(0).numChars > 1) {
+          throw new AnalysisException(s"trim Character ${inputs(0)} is great than 1 character.")
+        } else {
+          return inputs(1).trim(inputs(0))
+        }
       }
     }
     null
   }
 
   override protected def genCode(ctx: CodegenContext, ev: ExprCode): String = {
+    if(children.size == 2 &&
+      (! children(0).isInstanceOf[Literal] || children(0).toString.length > 1)) {
+      throw new AnalysisException(s"the trimming parameter should be Literal " +
+        s"and only one character.") }
+
     val evals = children.map(_.gen(ctx))
     val inputs = evals.map { eval =>
       s"${eval.isNull} ? null : ${eval.value}"
@@ -405,7 +416,7 @@ case class StringTrim(children: Seq[Expression])
     val getTrimFunction = if (children.size == 1) {
       s"""UTF8String ${ev.value} = ${inputs(0)}.trim();"""
     } else {
-      s"""UTF8String ${ev.value} = ${inputs(1)}.trim(${inputs(0)});"""
+      s"""UTF8String ${ev.value} = ${inputs(1)}.trim(${inputs(0)});""".stripMargin
     }
     evals.map(_.code).mkString("\n") +
     s"""
@@ -434,7 +445,9 @@ case class StringTrim(children: Seq[Expression])
  */
 @ExpressionDescription(
   usage = "_FUNC_(str) - Removes the leading space characters from str.",
-  extended = "> SELECT _FUNC_('    SparkSQL   ');\n 'SparkSQL   '")
+  extended = "> SELECT _FUNC_('    SparkSQL   ');\n 'SparkSQL   '\n" +
+             "> SELECT _FUNC_('S', 'SSparkSQLS');\n 'parkSQLS'\n" +
+             "> SELECT _FUNC_(LEADING 'S' FROM 'SSparkSQLS');\n 'parkSQLS'")
 case class StringTrimLeft(children: Seq[Expression])
   extends Expression with ImplicitCastInputTypes {
 
@@ -455,13 +468,22 @@ case class StringTrimLeft(children: Seq[Expression])
       if (children.size == 1) {
         return inputs(0).trimLeft()
       } else if (inputs(1) != null) {
-        return inputs(1).trimLeft(inputs(0))
+        if (inputs(0).numChars > 1) {
+          throw new AnalysisException(s"trim Character ${inputs(0)} is great than 1 character.")
+        } else {
+          return inputs(1).trimLeft(inputs(0))
+        }
       }
     }
     null
   }
 
   override protected def genCode(ctx: CodegenContext, ev: ExprCode): String = {
+    if(children.size == 2 &&
+      (! children(0).isInstanceOf[Literal] || children(0).toString.length > 1)) {
+      throw new AnalysisException(s"the trimming parameter should be Literal " +
+        s"and only one character.") }
+
     val evals = children.map(_.gen(ctx))
     val inputs = evals.map { eval =>
       s"${eval.isNull} ? null : ${eval.value}"
@@ -471,6 +493,7 @@ case class StringTrimLeft(children: Seq[Expression])
     } else {
       s"""UTF8String ${ev.value} = ${inputs(1)}.trimLeft(${inputs(0)});"""
     }
+
     evals.map(_.code).mkString("\n") +
       s"""
     boolean ${ev.isNull} = false;
@@ -498,7 +521,9 @@ case class StringTrimLeft(children: Seq[Expression])
  */
 @ExpressionDescription(
   usage = "_FUNC_(str) - Removes the trailing space characters from str.",
-  extended = "> SELECT _FUNC_('    SparkSQL   ');\n '    SparkSQL'")
+  extended = "> SELECT _FUNC_('    SparkSQL   ');\n '    SparkSQL'\n" +
+             "> SELECT _FUNC_('S', 'SSparkSQLS');\n 'SSparkSQL'\n" +
+             "> SELECT _FUNC_(TRAILING 'S' FROM 'SSparkSQLS');\n 'SSparkSQL'")
 case class StringTrimRight(children: Seq[Expression])
   extends Expression with ImplicitCastInputTypes {
 
@@ -519,13 +544,22 @@ case class StringTrimRight(children: Seq[Expression])
       if (children.size == 1) {
         return inputs(0).trimRight()
       } else if (inputs(1) != null) {
-        return inputs(1).trimRight(inputs(0))
+        if (inputs(0).numChars > 1) {
+          throw new AnalysisException(s"trim Character ${inputs(0)} is great than 1 character.")
+        } else {
+          return inputs(1).trimRight(inputs(0))
+        }
       }
     }
     null
   }
 
   override protected def genCode(ctx: CodegenContext, ev: ExprCode): String = {
+    if(children.size == 2 &&
+      (! children(0).isInstanceOf[Literal] || children(0).toString.length > 1)) {
+      throw new AnalysisException(s"the trimming parameter should be Literal " +
+        s"and only one character.") }
+
     val evals = children.map(_.gen(ctx))
     val inputs = evals.map { eval =>
       s"${eval.isNull} ? null : ${eval.value}"

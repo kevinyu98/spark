@@ -1055,9 +1055,10 @@ class AstBuilder extends SqlBaseBaseVisitor[AnyRef] with Logging {
     if (ctx.qualifiedName.getText.toLowerCase != "trim") {
       throw new ParseException(s"doesn't support this $optType.", ctx)
     }
+    /*
     if (trimChar.length > 1) {
       throw new ParseException(s"trim Character can only be 1 character.", ctx)
-    }
+    } */
     optType match {
        case SqlBaseParser.BOTH => "trim"
        case SqlBaseParser.LEADING => "ltrim"
