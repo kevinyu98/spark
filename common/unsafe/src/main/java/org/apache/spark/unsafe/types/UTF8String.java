@@ -477,9 +477,7 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
   }
 
   /**
-   * Search the trim character from left and right side of the input string
-   * by using find and rfind method. The search move with the trim character's
-   * bytes.
+   * Removes all specified trim character either from the beginning or the ending of a string
    * @param trimChar the trim character
    */
   public UTF8String trim (UTF8String trimChar) {
@@ -490,11 +488,8 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     int s = 0;
     // e is the search index in the input string, starting with the trim character's bytes
     // boundary, moving from right to left.
-    int e = this.numBytes-numTrimBytes;
+    int e = this.numBytes - numTrimBytes;
     // skip all the consecutive matching characters from left to right.
-    // 's' is the search index to find the byte position of the first non-matching character
-    // in the input string, move from left to right with the trim character's bytes boundary,
-    // s starts from position 0.
     while(s < this.numBytes && s == this.find(trimChar, s)) {
       s += numTrimBytes;
     }
@@ -518,7 +513,7 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     // 3, find matching, move 3 bytes to position 0, didn't find matching, the index e goes back
     // to the last byte of no matching position.
     if (e < 0) {
-        e = this.numBytes -1;
+        e = this.numBytes - 1;
     } else {
         while (e >= 0 && e == this.rfind(trimChar, e)) {
             e -= numTrimBytes;
@@ -548,6 +543,10 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     }
   }
 
+  /**
+    * Removes all specified trim character from the beginning of a string
+    * @param trimChar the trim character
+    */
   public UTF8String trimLeft(UTF8String trimChar) {
     int numTrimBytes = trimChar.numBytes;
     if (numTrimBytes == 0) {
@@ -555,9 +554,6 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     }
     int s = 0;
     // skip all the consecutive matching character in the left side
-    // 's' is the index to find the first no matching character byte position
-    // in the input string, move from left to right with the number of bytes of the trimming
-    // character, 's' starts from position 0.
     while(s < this.numBytes && s == this.find(trimChar, s)) {
       s += numTrimBytes;
     }
@@ -582,17 +578,21 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     }
   }
 
+  /**
+    * Removes all specified trim character from the ending of a string
+    * @param trimChar the trim character
+    */
   public UTF8String trimRight(UTF8String trimChar) {
     int numTrimBytes = trimChar.numBytes;
     if (numTrimBytes == 0) {
       return this;
     }
-    int e = this.numBytes-numTrimBytes;
+    int e = this.numBytes - numTrimBytes;
     // skip all the consecutive matching character in the right side
     // index 'e' points to first no matching byte position in the input string from right side.
     // Index 'e' moves the number of bytes of the trimming character first.
     if (e < 0) {
-      e = this.numBytes -1;
+      e = this.numBytes - 1;
     } else {
       while (e >= 0 && e == this.rfind(trimChar, e)) {
         e -= numTrimBytes;

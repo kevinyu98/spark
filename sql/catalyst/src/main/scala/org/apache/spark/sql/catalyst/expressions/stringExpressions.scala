@@ -364,7 +364,7 @@ case class FindInSet(left: Expression, right: Expression) extends BinaryExpressi
 }
 
 /**
- * A function that trim the spaces or character from both ends for the specified string.
+ * A function that trim the spaces or a character from both ends for the specified string.
  */
 @ExpressionDescription(
   usage = "_FUNC_(str) - Removes the leading and trailing space characters or char from str.",
@@ -394,7 +394,8 @@ case class StringTrim(children: Seq[Expression])
         return inputs(0).trim()
       } else if (inputs(1) != null) {
         if (inputs(0).numChars > 1) {
-          throw new AnalysisException(s"Trim Character ${inputs(0)} is great than 1 character.")
+          throw new AnalysisException(s"Trim character '${inputs(0)}' can not be greater than " +
+            s"1 character.")
         } else {
           return inputs(1).trim(inputs(0))
         }
@@ -441,7 +442,7 @@ case class StringTrim(children: Seq[Expression])
 }
 
 /**
- * A function that trim the spaces or character from left end for given string.
+ * A function that trim the spaces or a character from left end for given string.
  */
 @ExpressionDescription(
   usage = "_FUNC_(str) - Removes the leading space characters from str.",
@@ -469,7 +470,8 @@ case class StringTrimLeft(children: Seq[Expression])
         return inputs(0).trimLeft()
       } else if (inputs(1) != null) {
         if (inputs(0).numChars > 1) {
-          throw new AnalysisException(s"Trim Character ${inputs(0)} is great than 1 character.")
+          throw new AnalysisException(s"Trim character '${inputs(0)}' can not be greater than" +
+            s" 1 character.")
         } else {
           return inputs(1).trimLeft(inputs(0))
         }
@@ -517,7 +519,7 @@ case class StringTrimLeft(children: Seq[Expression])
 }
 
 /**
- * A function that trim the spaces or character from right end for given string.
+ * A function that trim the spaces or a character from right end for given string.
  */
 @ExpressionDescription(
   usage = "_FUNC_(str) - Removes the trailing space characters from str.",
@@ -545,7 +547,8 @@ case class StringTrimRight(children: Seq[Expression])
         return inputs(0).trimRight()
       } else if (inputs(1) != null) {
         if (inputs(0).numChars > 1) {
-          throw new AnalysisException(s"Trim Character ${inputs(0)} is great than 1 character.")
+          throw new AnalysisException(s"Trim character '${inputs(0)}' can not be greater than" +
+            s" 1 character.")
         } else {
           return inputs(1).trimRight(inputs(0))
         }
