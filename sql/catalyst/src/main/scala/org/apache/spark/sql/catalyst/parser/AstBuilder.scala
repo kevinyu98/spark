@@ -1053,13 +1053,14 @@ class AstBuilder extends SqlBaseBaseVisitor[AnyRef] with Logging {
    */
   private def getTrimFuncName(ctx: FunctionCallContext, optType: Int): String = {
     if (ctx.qualifiedName.getText.toLowerCase != "trim") {
-      throw new ParseException(s"doesn't support this $optType.", ctx)
+      throw new ParseException(s"The specified function ${ctx.qualifiedName.getText}  " +
+        s"doesn't support with option $optType.", ctx)
     }
     optType match {
        case SqlBaseParser.BOTH => "trim"
        case SqlBaseParser.LEADING => "ltrim"
        case SqlBaseParser.TRAILING => "rtrim"
-       case _ => throw new ParseException(s"doesn't support this $optType.", ctx)
+       case _ => throw new ParseException(s"Function trim doesn't support this $optType.", ctx)
     }
   }
 

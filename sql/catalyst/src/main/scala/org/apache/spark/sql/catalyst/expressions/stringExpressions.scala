@@ -394,7 +394,7 @@ case class StringTrim(children: Seq[Expression])
         return inputs(0).trim()
       } else if (inputs(1) != null) {
         if (inputs(0).numChars > 1) {
-          throw new AnalysisException(s"trim Character ${inputs(0)} is great than 1 character.")
+          throw new AnalysisException(s"Trim Character ${inputs(0)} is great than 1 character.")
         } else {
           return inputs(1).trim(inputs(0))
         }
@@ -406,7 +406,7 @@ case class StringTrim(children: Seq[Expression])
   override protected def genCode(ctx: CodegenContext, ev: ExprCode): String = {
     if(children.size == 2 &&
       (! children(0).isInstanceOf[Literal] || children(0).toString.length > 1)) {
-      throw new AnalysisException(s"the trimming parameter should be Literal " +
+      throw new AnalysisException(s"The trimming parameter should be Literal " +
         s"and only one character.") }
 
     val evals = children.map(_.gen(ctx))
@@ -469,7 +469,7 @@ case class StringTrimLeft(children: Seq[Expression])
         return inputs(0).trimLeft()
       } else if (inputs(1) != null) {
         if (inputs(0).numChars > 1) {
-          throw new AnalysisException(s"trim Character ${inputs(0)} is great than 1 character.")
+          throw new AnalysisException(s"Trim Character ${inputs(0)} is great than 1 character.")
         } else {
           return inputs(1).trimLeft(inputs(0))
         }
@@ -481,7 +481,7 @@ case class StringTrimLeft(children: Seq[Expression])
   override protected def genCode(ctx: CodegenContext, ev: ExprCode): String = {
     if(children.size == 2 &&
       (! children(0).isInstanceOf[Literal] || children(0).toString.length > 1)) {
-      throw new AnalysisException(s"the trimming parameter should be Literal " +
+      throw new AnalysisException(s"The trimming parameter should be Literal " +
         s"and only one character.") }
 
     val evals = children.map(_.gen(ctx))
@@ -545,7 +545,7 @@ case class StringTrimRight(children: Seq[Expression])
         return inputs(0).trimRight()
       } else if (inputs(1) != null) {
         if (inputs(0).numChars > 1) {
-          throw new AnalysisException(s"trim Character ${inputs(0)} is great than 1 character.")
+          throw new AnalysisException(s"Trim Character ${inputs(0)} is great than 1 character.")
         } else {
           return inputs(1).trimRight(inputs(0))
         }
@@ -557,7 +557,7 @@ case class StringTrimRight(children: Seq[Expression])
   override protected def genCode(ctx: CodegenContext, ev: ExprCode): String = {
     if(children.size == 2 &&
       (! children(0).isInstanceOf[Literal] || children(0).toString.length > 1)) {
-      throw new AnalysisException(s"the trimming parameter should be Literal " +
+      throw new AnalysisException(s"The trimming parameter should be Literal " +
         s"and only one character.") }
 
     val evals = children.map(_.gen(ctx))

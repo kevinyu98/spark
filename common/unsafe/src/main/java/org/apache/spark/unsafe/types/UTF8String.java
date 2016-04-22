@@ -491,24 +491,25 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
     // e is the search index in the input string, starting with the trim character's bytes
     // boundary, moving from right to left.
     int e = this.numBytes-numTrimBytes;
-    // skip all the continue matching character in the left side.
-    // s is the search index to find the first no matching character byte position
+    // skip all the consecutive matching characters from left to right.
+    // 's' is the search index to find the byte position of the first non-matching character
     // in the input string, move from left to right with the trim character's bytes boundary,
     // s starts from position 0.
     while(s < this.numBytes && s == this.find(trimChar, s)) {
       s += numTrimBytes;
     }
-    // skip all the continue matching character in the right side.
-    // if the trim character has more bytes than the input string, no skip, e points to the end
+    // skip all the consecutive matching character in the right side.
+    // if the trimming character has more bytes than the input string, 'e' points to the end
     // of input string.
-    // The search index e will first position the same number of bytes as the trim character in
-    // the input string, if found the matching at that position, continue move left.
-    // The index e will be negative if exhaust the input string, skip the whole input string.
-    // if no matching find at that position, the search will stop there, move back the index e to
-    // the last byte of no matching position, so all the right side of index e will be skipped.
+    // The search index 'e' will be first positioned at the offset from the end of the input
+    // string by the number of bytes of the trimming character, if a matching is found, continue
+    // moving left until the string is exhausted or a non-matching character is hit. Every move
+    // is the number of bytes of the trimming character. When a non-matching character is hit,
+    // 'e' needs to be positioned back to the last byte of the non-matching character.
     // example 1:
     // trim character: 数, input string: 头, both character has 3 bytes. e starts
-    // 0, rfind could not find matching, index e goes back to the last byte of no matching position.
+    // 0, rfind could not find matching, index 'e' goes back to the last byte of
+    // no matching position.
     // example 2:
     // trim character: 数, input string a, 'a' has 1 byte, '数' has 3 bytes, e starts with -2,
     // it should return with the input string
@@ -553,10 +554,10 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
       return this;
     }
     int s = 0;
-    // skip all the continue matching character in the left side
-    // s is the index to find the first no matching character byte position
-    // in the input string, move from left to right with the trim character's bytes,
-    // s starts from position 0.
+    // skip all the consecutive matching character in the left side
+    // 's' is the index to find the first no matching character byte position
+    // in the input string, move from left to right with the number of bytes of the trimming
+    // character, 's' starts from position 0.
     while(s < this.numBytes && s == this.find(trimChar, s)) {
       s += numTrimBytes;
     }
@@ -587,9 +588,9 @@ public final class UTF8String implements Comparable<UTF8String>, Externalizable,
       return this;
     }
     int e = this.numBytes-numTrimBytes;
-    // skip all the continue matching character in the right side
-    // index e points to first no matching byte position in the input string from right side.
-    // Index e moves the number of trim character's bytes first.
+    // skip all the consecutive matching character in the right side
+    // index 'e' points to first no matching byte position in the input string from right side.
+    // Index 'e' moves the number of bytes of the trimming character first.
     if (e < 0) {
       e = this.numBytes -1;
     } else {
