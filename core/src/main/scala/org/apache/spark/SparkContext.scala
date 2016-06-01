@@ -265,6 +265,7 @@ class SparkContext(config: SparkConf) extends Logging with ExecutorAllocationCli
   // Used to store a URL for each static file/jar together with the file's local timestamp
   private[spark] val addedFiles = HashMap[String, Long]()
   private[spark] val addedJars = HashMap[String, Long]()
+  private[spark] val deletedFiles = HashMap[String, Long]()
 
   // Keeps track of all persisted RDDs
   private[spark] val persistentRdds = {
@@ -1375,6 +1376,44 @@ class SparkContext(config: SparkConf) extends Logging with ExecutorAllocationCli
     bc
   }
 
+  def deleteFile(path: String): Unit = {
+    deleteFile(path, false)
+  }
+
+  def deleteFile(path: String, recursive: Boolean): Unit = {
+    val uri = new URI(path)
+    val schemeCorrectedPath = uri.getScheme match {
+      case null | "local" => new File(path).getCanonicalFile.toURI.toString
+      case _ => path
+    }
+    val hadoopPath = new Path(schemeCorrectedPath)
+    val scheme = new URI(schemeCorrectedPath).getScheme
+    if (!Array("http", "https", "ftp").contains(scheme)) {
+      val fs = hadoopPath.getFileSystem(hadoopConfiguration)
+      if (!fs.exists(hadoopPath)) {
+        throw new FileNotFoundException(s"deleted file $hadoopPath does not exist.")
+      }
+      val isDir = fs.getFileStatus(hadoopPath).isDirectory
+      if (!isLocal && scheme == "file" && isDir) {
+        throw new SparkException(s"deleteFile does not support local directories when " +
+          "not running local mode.")
+      }
+      if (!recursive && isDir) {
+        throw new SparkException(s"Deleted file $hadoopPath is a directory and recursive is not " +
+          "turned on.")
+      }
+    }
+
+    val fileName = new File(uri.getPath)
+    val key = if (!isLocal && scheme == "file") {
+      env.rpcEnv.fileServer.deleteFile(fileName.getName())
+    } else {
+      schemeCorrectedPath
+    }
+
+    addedFiles.remove(key)
+    postEnvironmentUpdate()
+  }
   /**
    * Add a file to be downloaded with this Spark job on every node.
    * The `path` passed can be either a local file, a file in HDFS (or other Hadoop-supported
@@ -1724,6 +1763,25 @@ class SparkContext(config: SparkConf) extends Logging with ExecutorAllocationCli
         addedJars(key) = System.currentTimeMillis
         logInfo("Added JAR " + path + " at " + key + " with timestamp " + addedJars(key))
       }
+    }
+    postEnvironmentUpdate()
+  }
+
+  /**
+   * Deletes a JAR dependency for all tasks to be executed on this SparkContext in the future.
+   * The `path` passed can be either a local file, a file in HDFS (or other Hadoop-supported
+   * filesystems), an HTTP, HTTPS or FTP URI, or local:/path for a file on every worker node.
+   */
+  def deleteJar(path: String) {
+    if (path == null) {
+      logWarning("null specified as parameter to deleteJar")
+    } else {
+      val fileName = new Path(path).getName()
+      env.rpcEnv.fileServer.deleteJar(fileName)
+      addedJars.collect {
+        case (k, _) if (k.contains(fileName)) => addedJars.remove(k)
+      }
+      logInfo("Deleted JAR " + path)
     }
     postEnvironmentUpdate()
   }

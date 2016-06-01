@@ -668,6 +668,10 @@ private[hive] class HiveClientImpl(
     runSqlHive(s"ADD JAR $path")
   }
 
+  def deleteJar(path: String): Unit = {
+    runSqlHive(s"DELETE JAR $path")
+  }
+
   def newSession(): HiveClientImpl = {
     clientLoader.createClient().asInstanceOf[HiveClientImpl]
   }

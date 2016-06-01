@@ -154,6 +154,8 @@ private[spark] trait RpcEnvFileServer {
    */
   def addFile(file: File): String
 
+  def deleteFile(file: String): String
+
   /**
    * Adds a jar to be served by this RpcEnv. Similar to `addFile` but for jars added using
    * `SparkContext.addJar`.
@@ -163,6 +165,14 @@ private[spark] trait RpcEnvFileServer {
    */
   def addJar(file: File): String
 
+  /**
+   * Delete a jar to be served by this RpcEnv. Similar to `deleteFile` but for jars deleted using
+   * `SparkContext.deleteJar`.
+   *
+   * @param file Local file to serve.
+   * @return A URI for the location of the file.
+   */
+  def deleteJar(file: String): Unit
   /**
    * Adds a local directory to be served via this file server.
    *

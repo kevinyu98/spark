@@ -110,6 +110,11 @@ private[hive] class HiveSessionState(sparkSession: SparkSession)
     super.addJar(path)
   }
 
+  override def deleteJar(path: String): Unit = {
+    metadataHive.deleteJar(path)
+    super.deleteJar(path)
+  }
+
   /**
    * When true, enables an experimental feature where metastore tables that use the parquet SerDe
    * are automatically converted to use the Spark SQL parquet table scan, instead of the Hive

@@ -184,6 +184,10 @@ private[sql] class SessionState(sparkSession: SparkSession) {
     Thread.currentThread().setContextClassLoader(jarClassLoader)
   }
 
+  def deleteJar(path: String): Unit = {
+    sparkSession.sparkContext.deleteJar(path)
+  }
+
   /**
    * Analyzes the given table in the current database to generate statistics, which will be
    * used in query optimizations.
