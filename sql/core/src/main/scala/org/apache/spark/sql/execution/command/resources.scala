@@ -99,3 +99,30 @@ case class ListJarsCommand(jars: Seq[String] = Seq.empty[String]) extends Runnab
     }
   }
 }
+
+/**
+ * Deletes a file to the current session.
+ */
+case class DeleteFileCommand(path: String) extends RunnableCommand {
+  override def run(sparkSession: SparkSession): Seq[Row] = {
+    sparkSession.sparkContext.deleteFile(path)
+    Seq.empty[Row]
+  }
+}
+
+/**
+ * Deletes a jar to the current session.
+ */
+case class DeleteJarCommand(path: String) extends RunnableCommand {
+  override val output: Seq[Attribute] = {
+    val schema = StructType(
+      StructField("result", IntegerType, nullable = false) :: Nil)
+      schema.toAttributes
+    }
+
+  override def run(sparkSession: SparkSession): Seq[Row] = {
+    sparkSession.sessionState.deleteJar(path)
+    Seq(Row(0))
+  }
+}
+

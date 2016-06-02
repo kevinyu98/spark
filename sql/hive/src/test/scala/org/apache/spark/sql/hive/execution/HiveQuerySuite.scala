@@ -885,6 +885,19 @@ class HiveQuerySuite extends HiveComparisonTest with BeforeAndAfter {
     assert(sql(s"list jar $testJar").count() == 1)
   }
 
+  test("DELETE JAR command") {
+    // this is a test case from mapjoin_addjar.q
+    val testJar2 = TestHive.getHiveFile("TestUDTF.jar").getCanonicalPath
+    sql(s"DELETE JAR $testJar2")
+    sql(s"ADD JAR $testJar2")
+    assert(sql(s"list jar $testJar2").count() == 1)
+    sql(s"DELETE JAR $testJar2")
+    assert(sql("list jars").
+      filter(_.getString(0).contains("TestUDTF.jar")).count() == 0)
+    assert(sql("list jar").
+      filter(_.getString(0).contains("TestUDTF.jar")).count() == 0)
+  }
+
   test("CREATE TEMPORARY FUNCTION") {
     val funcJar = TestHive.getHiveFile("TestUDTF.jar").getCanonicalPath
     val jarURL = s"file://$funcJar"
@@ -897,7 +910,7 @@ class HiveQuerySuite extends HiveComparisonTest with BeforeAndAfter {
     sql("DROP TEMPORARY FUNCTION udtf_count2")
   }
 
-  test("ADD FILE command") {
+  test("ADD and DELETE FILE command") {
     val testFile = TestHive.getHiveFile("data/files/v1.txt").getCanonicalFile
     sql(s"ADD FILE $testFile")
 
@@ -911,6 +924,13 @@ class HiveQuerySuite extends HiveComparisonTest with BeforeAndAfter {
     assert(sql("list file").
       filter(_.getString(0).contains("data/files/v1.txt")).count() > 0)
     assert(sql(s"list file $testFile").count() == 1)
+
+    sql(s"DELETE FILE $testFile")
+    assert(sql("list files").
+      filter(_.getString(0).contains("data/files/v1.txt")).count() == 0)
+    assert(sql("list file").
+      filter(_.getString(0).contains("data/files/v1.txt")).count() == 0)
+    assert(sql(s"list file $testFile").count() == 0)
   }
 
   createQueryTest("dynamic_partition",
