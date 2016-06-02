@@ -115,9 +115,8 @@ statement
     | CLEAR CACHE                                                      #clearCache
     | LOAD DATA LOCAL? INPATH path=STRING OVERWRITE? INTO TABLE
         tableIdentifier partitionSpec?                                 #loadData
-    | TRUNCATE TABLE tableIdentifier partitionSpec?
-        (COLUMNS identifierList)?                                      #truncateTable
-    | op=(ADD | DELETE | LIST) identifier .*?                          #manageResource
+    | TRUNCATE TABLE tableIdentifier partitionSpec?                    #truncateTable
+    | op=(ADD | DELETE | LIST) identifier .*?                        #manageResource
     | SET ROLE .*?                                                     #failNativeCommand
     | SET .*?                                                          #setConfiguration
     | RESET                                                            #resetConfiguration
