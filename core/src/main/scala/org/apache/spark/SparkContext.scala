@@ -1376,40 +1376,18 @@ class SparkContext(config: SparkConf) extends Logging with ExecutorAllocationCli
   }
 
   def deleteFile(path: String): Unit = {
-    deleteFile(path, false)
-  }
-
-  def deleteFile(path: String, recursive: Boolean): Unit = {
     val uri = new URI(path)
     val schemeCorrectedPath = uri.getScheme match {
       case null | "local" => new File(path).getCanonicalFile.toURI.toString
       case _ => path
     }
-    val hadoopPath = new Path(schemeCorrectedPath)
     val scheme = new URI(schemeCorrectedPath).getScheme
-    if (!Array("http", "https", "ftp").contains(scheme)) {
-      val fs = hadoopPath.getFileSystem(hadoopConfiguration)
-      if (!fs.exists(hadoopPath)) {
-        throw new FileNotFoundException(s"deleted file $hadoopPath does not exist.")
-      }
-      val isDir = fs.getFileStatus(hadoopPath).isDirectory
-      if (!isLocal && scheme == "file" && isDir) {
-        throw new SparkException(s"deleteFile does not support local directories when " +
-          "not running local mode.")
-      }
-      if (!recursive && isDir) {
-        throw new SparkException(s"Deleted file $hadoopPath is a directory and recursive is not " +
-          "turned on.")
-      }
-    }
-
     val fileName = new File(uri.getPath)
     val key = if (!isLocal && scheme == "file") {
       env.rpcEnv.fileServer.deleteFile(fileName.getName())
     } else {
       schemeCorrectedPath
     }
-
     addedFiles.remove(key)
     postEnvironmentUpdate()
   }
