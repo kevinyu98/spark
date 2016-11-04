@@ -99,6 +99,22 @@ class JDBCOptions(
   // ------------------------------------------------------------
   // if to truncate the table from the JDBC database
   val isTruncate = parameters.getOrElse(JDBC_TRUNCATE, "false").toBoolean
+  // if to upsert the table from the JDBC database
+  val isUpsert = parameters.getOrElse(JDBC_UPSERT, "false").toBoolean
+  // the columns used to set condition columns for upsert feature
+  val upsert_conditionColumn =
+    if (parameters.getOrElse(JDBC_UPSERT_CONDITION_COLUMNS, null) == null) {
+      Array.empty[String]
+    } else {
+      parameters.getOrElse(JDBC_UPSERT_CONDITION_COLUMNS, null).split(",").map(_.trim)
+    }
+  // the columns used to set the update columns for upsert feature
+  val upsert_updateColumn =
+    if (parameters.getOrElse(JDBC_UPSERT_UPDATE_COLUMNS, null) == null) {
+      Array.empty[String]
+    } else {
+      parameters.getOrElse(JDBC_UPSERT_UPDATE_COLUMNS, null).split(",").map(_.trim)
+    }
   // the create table option , which can be table_options or partition_options.
   // E.g., "CREATE TABLE t (name string) ENGINE=InnoDB DEFAULT CHARSET=utf8"
   // TODO: to reuse the existing partition parameters for those partition specific options
@@ -140,4 +156,7 @@ object JDBCOptions {
   val JDBC_CREATE_TABLE_OPTIONS = newOption("createTableOptions")
   val JDBC_BATCH_INSERT_SIZE = newOption("batchsize")
   val JDBC_TXN_ISOLATION_LEVEL = newOption("isolationLevel")
+  val JDBC_UPSERT = newOption("upsert")
+  val JDBC_UPSERT_CONDITION_COLUMNS = newOption("upsert_conditionColumns")
+  val JDBC_UPSERT_UPDATE_COLUMNS = newOption("upsert_updateColumns")
 }

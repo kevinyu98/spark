@@ -403,6 +403,15 @@ final class DataFrameWriter[T] private[sql](ds: Dataset[T]) {
    * You can set the following JDBC-specific option(s) for storing JDBC:
    * <ul>
    * <li>`truncate` (default `false`): use `TRUNCATE TABLE` instead of `DROP TABLE`.</li>
+   * <li>`upsert` (default `false`): under SaveMode.Append mode, specify whether to allow the
+   * JDBC data source to update a record that is duplicate of the insertion row. Some databases
+   * may require users to specify on which column(s) to identify such duplicate. </li>
+   * <li>`condition_columns`: when `upsert` is `true`, column(s)(separated by comma) need to be
+   * specified, on which duplicate rows are identified. This requirement is applied to database
+   * systems, such as DB2, Oracle, PostgreSQL.</li>
+   * <li>`update_columns`: when `upsert` is `true`, column(s)(separated by comma) need to be
+   * specified, on which duplicate rows are identified. This requirement is applied to database
+   * systems, such as MySQL.</li>
    * </ul>
    *
    * In case of failures, users should turn off `truncate` option to use `DROP TABLE` again. Also,

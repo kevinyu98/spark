@@ -17,7 +17,7 @@
 
 package org.apache.spark.sql.jdbc
 
-import java.sql.DriverManager
+import java.sql.{Connection, DriverManager, PreparedStatement}
 import java.util.Properties
 
 import scala.collection.JavaConverters.propertiesAsScalaMapConverter
@@ -48,6 +48,31 @@ class JDBCWriteSuite extends SharedSQLContext with BeforeAndAfter {
         sqlType: Int, typeName: String, size: Int, md: MetadataBuilder): Option[DataType] =
       Some(StringType)
     override def isCascadingTruncateTable(): Option[Boolean] = Some(false)
+    override def upsertStatement(
+        conn: Connection, table: String, rddSchema: StructType, upsertParam: UpsertInfo =
+    UpsertInfo(Array.empty[String], Array.empty[String])): PreparedStatement = {
+
+      if (!upsertParam.upsertConditionColumns.forall(rddSchema.fieldNames.contains(_))) {
+        throw new IllegalArgumentException(
+          s"""
+             |Condition columns specified should be a subset of the schema in the input dataset.
+             |schema: ${rddSchema.fieldNames.mkString(", ")}
+             |condition_columns: ${upsertParam.upsertConditionColumns.mkString(", ")}
+         """.stripMargin)
+      }
+
+      val columnNames = rddSchema.fields.map(_.name).mkString(", ")
+      val keyNames = upsertParam.upsertConditionColumns.mkString(", ")
+      val placeholders = rddSchema.fields.map(_ => "?").mkString(",")
+      val sql =
+        s"""
+           |MERGE INTO $table ($columnNames)
+           |KEY($keyNames)
+           |VALUES($placeholders)
+       """.stripMargin
+      conn.prepareStatement(sql)
+
+    }
   }
 
   before {
@@ -65,6 +90,12 @@ class JDBCWriteSuite extends SharedSQLContext with BeforeAndAfter {
     conn1.prepareStatement("drop table if exists test.people1").executeUpdate()
     conn1.prepareStatement(
       "create table test.people1 (name TEXT(32) NOT NULL, theid INTEGER NOT NULL)").executeUpdate()
+    conn1.prepareStatement(
+      "create table test.upsertT1(c1 INTEGER PRIMARY KEY, c2 INTEGER)").executeUpdate()
+    conn1.prepareStatement(
+      "insert into test.upsertT1 values (1, 10)").executeUpdate()
+    conn1.prepareStatement(
+      "insert into test.upsertT1 values (2, 12)").executeUpdate()
     conn1.commit()
 
     sql(
@@ -98,6 +129,13 @@ class JDBCWriteSuite extends SharedSQLContext with BeforeAndAfter {
       StructField("name", StringType) ::
       StructField("id", IntegerType) ::
       StructField("seq", IntegerType) :: Nil)
+
+  private lazy val ary2x2 = Array[Row](Row.apply(1, 52), Row.apply(2, 222))
+  private lazy val schema4 = StructType(
+    StructField("C1", IntegerType) ::
+    StructField("C2", IntegerType) :: Nil)
+  private lazy val ary1x2 = Array[Row](Row.apply(1, 42))
+  private lazy val ary2x3 = Array[Row](Row.apply(1, 10), Row.apply(2, 20), Row.apply(1, 30))
 
   test("Basic CREATE") {
     val df = spark.createDataFrame(sparkContext.parallelize(arr2x2), schema2)
@@ -186,6 +224,38 @@ class JDBCWriteSuite extends SharedSQLContext with BeforeAndAfter {
     }.getMessage
     assert(m.contains("Column \"seq\" not found"))
     assert(0 === spark.read.jdbc(url1, "TEST.TRUNCATETEST", properties).count())
+    JdbcDialects.unregisterDialect(testH2Dialect)
+  }
+
+  test("upsert") {
+    JdbcDialects.registerDialect(testH2Dialect)
+    val df = spark.createDataFrame(sparkContext.parallelize(ary2x2), schema4)
+    val df1 = spark.createDataFrame(sparkContext.parallelize(ary1x2), schema4)
+    val df2 = spark.createDataFrame(sparkContext.parallelize(ary2x3), schema4)
+
+    df.write.mode(SaveMode.Append).option("upsert", true).option("upsert_conditionColumn", "C1")
+      .jdbc(url1, "TEST.UPSERT", properties)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT", properties).count() == 2)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT", properties).filter("C1=1")
+      .collect.head.get(1) == "52")
+
+    assert(spark.read.jdbc(url1, "test.upsertT1", properties).count() == 2)
+    assert(spark.read.jdbc(url1, "test.upsertT1", properties).filter("C1=1")
+      .collect.head.get(1) == "10")
+    df.write.mode(SaveMode.Append).option("upsert", true).option("upsert_conditionColumn", "C1")
+      .jdbc(url1, "test.upsertT1", properties)
+    assert(spark.read.jdbc(url1, "test.upsertT1", properties).filter("C1=1")
+    .collect.head.get(1) == "52")
+   // Overwrite will drop the table, then insert the dataframe rows into the empty table
+    df1.write.mode(SaveMode.Overwrite).option("upsert", true).option("upsert_conditionColumn", "C1")
+      .jdbc(url1, "test.upsertT1", properties)
+    assert(spark.read.jdbc(url1, "test.upsertT1", properties).filter("C1=1")
+      .collect.head.get(1) == "42")
+   // Append without upsert option, it will not insert the value (1, 30) into the table
+    df2.write.mode(SaveMode.Append).option("upsert_conditionColumn", "c1")
+    .jdbc(url1, "test.upsertT1", properties)
+    assert(spark.read.jdbc(url1, "test.upsertT1", properties).filter("C1=1")
+      .collect.head.get(1) == "42")
     JdbcDialects.unregisterDialect(testH2Dialect)
   }
 

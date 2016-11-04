@@ -65,16 +65,16 @@ class JdbcRelationProvider extends CreatableRelationProvider
             if (isTruncate && isCascadingTruncateTable(url) == Some(false)) {
               // In this case, we should truncate table and then load.
               truncateTable(conn, table)
-              saveTable(df, url, table, jdbcOptions)
+              saveTable(df, url, table, jdbcOptions, mode)
             } else {
               // Otherwise, do not truncate the table, instead drop and recreate it
               dropTable(conn, table)
               createTable(df.schema, url, table, createTableOptions, conn)
-              saveTable(df, url, table, jdbcOptions)
+              saveTable(df, url, table, jdbcOptions, mode)
             }
 
           case SaveMode.Append =>
-            saveTable(df, url, table, jdbcOptions)
+            saveTable(df, url, table, jdbcOptions, mode)
 
           case SaveMode.ErrorIfExists =>
             throw new AnalysisException(
@@ -87,7 +87,7 @@ class JdbcRelationProvider extends CreatableRelationProvider
         }
       } else {
         createTable(df.schema, url, table, createTableOptions, conn)
-        saveTable(df, url, table, jdbcOptions)
+        saveTable(df, url, table, jdbcOptions, mode)
       }
     } finally {
       conn.close()

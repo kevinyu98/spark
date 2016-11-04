@@ -20,11 +20,13 @@ package org.apache.spark.sql.jdbc
 import java.math.BigDecimal
 import java.sql.{Connection, Date, Timestamp}
 import java.util.Properties
+import org.apache.spark.sql.SaveMode
 
 import org.apache.spark.tags.DockerTest
 
 @DockerTest
 class MySQLIntegrationSuite extends DockerJDBCIntegrationSuite {
+  import testImplicits._
   override val db = new DatabaseOnDocker {
     override val imageName = "mysql:5.7.9"
     override val env = Map(
@@ -61,6 +63,11 @@ class MySQLIntegrationSuite extends DockerJDBCIntegrationSuite {
     ).executeUpdate()
     conn.prepareStatement("INSERT INTO strings VALUES ('the', 'quick', 'brown', 'fox', " +
       "'jumps', 'over', 'the', 'lazy', 'dog')").executeUpdate()
+
+    conn.prepareStatement("CREATE TABLE upsertT1 (c1 INTEGER primary key, c2 INTEGER, c3 INTEGER)")
+      .executeUpdate()
+    conn.prepareStatement("INSERT INTO upsertT1 VALUES (1, 2, 3), (2, 3, 4), (3, 4, 5)")
+      .executeUpdate()
   }
 
   test("Basic test") {
@@ -151,5 +158,22 @@ class MySQLIntegrationSuite extends DockerJDBCIntegrationSuite {
     df1.write.jdbc(jdbcUrl, "numberscopy", new Properties)
     df2.write.jdbc(jdbcUrl, "datescopy", new Properties)
     df3.write.jdbc(jdbcUrl, "stringscopy", new Properties)
+  }
+
+  test("Upsert test -- matching one column") {
+    // update Row(1, 2, 3) to (1, 3, 6) and insert new Row(4, 5, 6)
+    val df11 = spark.read.jdbc(jdbcUrl, "upsertT1", new Properties())
+    val df1 = Seq((1, 3, 6), (4, 5, 6)).toDF("c1", "c2", "c3")
+    assert(df11.filter("c1=1").collect.head.getInt(1) == 2)
+    assert(df11.filter("c1=1").collect.head.getInt(2) == 3)
+    assert(df11.filter("c1=4").collect.size == 0)
+    df1.write.mode(SaveMode.Append)
+      .option("upsert", true).option("upsert_updateColumns", "c2, c3")
+      .jdbc(jdbcUrl, "upsertT1", new Properties)
+    val df12 = spark.read.jdbc(jdbcUrl, "upsertT1", new Properties())
+    assert(df12.filter("c1=1").collect.head.getInt(1) == 3)
+    assert(df12.filter("c1=1").collect.head.getInt(2) == 6)
+    assert(df12.filter("c1=4").collect.size == 1)
+
   }
 }

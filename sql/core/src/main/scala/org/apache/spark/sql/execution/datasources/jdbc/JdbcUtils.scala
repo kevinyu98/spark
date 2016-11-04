@@ -26,12 +26,12 @@ import scala.util.control.NonFatal
 import org.apache.spark.TaskContext
 import org.apache.spark.executor.InputMetrics
 import org.apache.spark.internal.Logging
-import org.apache.spark.sql.{DataFrame, Row}
+import org.apache.spark.sql.{DataFrame, Row, SaveMode}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.catalyst.expressions.SpecificInternalRow
 import org.apache.spark.sql.catalyst.util.{DateTimeUtils, GenericArrayData}
-import org.apache.spark.sql.jdbc.{JdbcDialect, JdbcDialects, JdbcType}
+import org.apache.spark.sql.jdbc.{JdbcDialect, JdbcDialects, JdbcType, UpsertInfo}
 import org.apache.spark.sql.types._
 import org.apache.spark.unsafe.types.UTF8String
 import org.apache.spark.util.NextIterator
@@ -526,7 +526,7 @@ object JdbcUtils extends Logging {
    * non-Serializable.  Instead, we explicitly close over all variables that
    * are used.
    */
-  def savePartition(
+  private def savePartition(
       getConnection: () => Connection,
       table: String,
       iterator: Iterator[Row],
@@ -534,7 +534,10 @@ object JdbcUtils extends Logging {
       nullTypes: Array[Int],
       batchSize: Int,
       dialect: JdbcDialect,
-      isolationLevel: Int): Iterator[Byte] = {
+      isolationLevel: Int,
+      isUpsert: Boolean = false,
+      upsertParam: UpsertInfo =
+      UpsertInfo(Array.empty[String], Array.empty[String])): Iterator[Byte] = {
     val conn = getConnection()
     var committed = false
 
@@ -568,7 +571,12 @@ object JdbcUtils extends Logging {
         conn.setAutoCommit(false) // Everything in the same db transaction.
         conn.setTransactionIsolation(finalIsolationLevel)
       }
-      val stmt = insertStatement(conn, table, rddSchema, dialect)
+      val stmt = if (isUpsert) {
+        dialect.upsertStatement(conn, table, rddSchema, upsertParam)
+      }
+        else {
+        insertStatement(conn, table, rddSchema, dialect)
+      }
       val setters: Array[JDBCValueSetter] = rddSchema.fields.map(_.dataType)
         .map(makeSetter(conn, dialect, _)).toArray
       val numFields = rddSchema.fields.length
@@ -657,7 +665,8 @@ object JdbcUtils extends Logging {
       df: DataFrame,
       url: String,
       table: String,
-      options: JDBCOptions) {
+      options: JDBCOptions,
+      mode: SaveMode) {
     val dialect = JdbcDialects.get(url)
     val nullTypes: Array[Int] = df.schema.fields.map { field =>
       getJdbcType(field.dataType, dialect).jdbcNullType
@@ -667,8 +676,13 @@ object JdbcUtils extends Logging {
     val getConnection: () => Connection = createConnectionFactory(options)
     val batchSize = options.batchSize
     val isolationLevel = options.isolationLevel
+    val isUpsert = (options.isUpsert && (mode == SaveMode.Append))
+    val upsertUpdateColumns = options.upsert_updateColumn
+    val upsertConditionColumns = options.upsert_conditionColumn
+    val upsertParam = new UpsertInfo(upsertConditionColumns, upsertUpdateColumns)
     df.foreachPartition(iterator => savePartition(
-      getConnection, table, iterator, rddSchema, nullTypes, batchSize, dialect, isolationLevel)
+      getConnection, table, iterator, rddSchema, nullTypes, batchSize, dialect,
+      isolationLevel, isUpsert, upsertParam)
     )
   }
 
