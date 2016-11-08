@@ -17,7 +17,7 @@
 
 package org.apache.spark.sql.jdbc
 
-import java.sql.{Connection, Types}
+import java.sql.{Connection, PreparedStatement, Types}
 
 import org.apache.spark.sql.execution.datasources.jdbc.{JDBCOptions, JdbcUtils}
 import org.apache.spark.sql.types._
@@ -101,4 +101,57 @@ private object PostgresDialect extends JdbcDialect {
   }
 
   override def isCascadingTruncateTable(): Option[Boolean] = Some(true)
+
+  /**
+   * Returns a PreparedStatement that does Insert/Update table
+   */
+  override def upsertStatement(
+      conn: Connection,
+      table: String,
+      rddSchema: StructType,
+      upsertParam: UpsertInfo =
+      UpsertInfo(Array.empty[String], Array.empty[String])): PreparedStatement = {
+    require(upsertParam.upsertConditionColumns.nonEmpty,
+      "Upsert option requires column names on which duplicate rows are identified. " +
+         "Please specify option(\"upsert_conditionColumns\", \"c1, c2, ...\")")
+    require(conn.getMetaData.getDatabaseProductVersion.compareToIgnoreCase("9.5") > 0,
+      "INSERT INTO with ON CONFLICT clause only support by PostgreSQL 9.5 and up.")
+
+    if (!upsertParam.upsertConditionColumns.forall(rddSchema.fieldNames.contains(_))) {
+      throw new IllegalArgumentException(
+        s"""
+           |Condition columns specified should be a subset of the schema in the input dataset.
+           |schema: ${rddSchema.fieldNames.mkString(", ")}
+           |condition_columns: ${upsertParam.upsertConditionColumns.mkString(", ")}
+        """.stripMargin)
+    }
+
+    val insertColumns = rddSchema.fields.map(_.name).mkString(", ")
+    val conflictTarget = upsertParam.upsertConditionColumns.mkString(", ")
+    val placeholders = rddSchema.fields.map(_ => "?").mkString(",")
+    val updateClause = rddSchema.fields.map(_.name)
+      .filterNot(upsertParam.upsertConditionColumns.contains(_))
+      .map(x => s"$x = EXCLUDED.$x").mkString(", ")
+
+    // In the case where condition columns are the whole set of the rddSchema columns
+    // and rddSchema columns may be a subset of the target table schema.
+    // We need to do nothing for matched rows
+    val sql = if (updateClause != null && updateClause.nonEmpty) {
+      s"""
+         |INSERT INTO $table ($insertColumns)
+         |VALUES ( $placeholders )
+         |ON CONFLICT ($conflictTarget)
+         |DO UPDATE SET $updateClause
+       """.stripMargin
+    } else {
+      s"""
+         |INSERT INTO $table ($insertColumns)
+         |VALUES ( $placeholders )
+         |ON CONFLICT ($conflictTarget)
+         |DO NOTHING
+       """.stripMargin
+    }
+    print("\nstmt: " + sql)
+    conn.prepareStatement(sql)
+  }
 }

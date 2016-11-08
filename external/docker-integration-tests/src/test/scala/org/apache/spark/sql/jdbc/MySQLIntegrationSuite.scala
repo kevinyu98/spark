@@ -68,6 +68,11 @@ class MySQLIntegrationSuite extends DockerJDBCIntegrationSuite {
       .executeUpdate()
     conn.prepareStatement("INSERT INTO upsertT1 VALUES (1, 2, 3), (2, 3, 4), (3, 4, 5)")
       .executeUpdate()
+    conn.prepareStatement("CREATE TABLE upsertT2 (c1 INTEGER, c2 INTEGER, c3 INTEGER, " +
+      "primary key(c1, c2))").executeUpdate()
+    conn.prepareStatement("INSERT INTO upsertT2 VALUES (1, 2, 3), (2, 3, 4), (3, 4, 5)")
+      .executeUpdate()
+
   }
 
   test("Basic test") {
@@ -160,13 +165,16 @@ class MySQLIntegrationSuite extends DockerJDBCIntegrationSuite {
     df3.write.jdbc(jdbcUrl, "stringscopy", new Properties)
   }
 
-  test("Upsert test -- matching one column") {
+  test("Upsert and Append mode test -- data matching one column") {
     // update Row(1, 2, 3) to (1, 3, 6) and insert new Row(4, 5, 6)
     val df11 = spark.read.jdbc(jdbcUrl, "upsertT1", new Properties())
     val df1 = Seq((1, 3, 6), (4, 5, 6)).toDF("c1", "c2", "c3")
+    // new Row(1, 5, 8) on C2, update Row(1, 3, 6) to (1, 5, 6)
+    val df2 = Seq((1, 5, 8)).toDF("c1", "c2", "c3")
     assert(df11.filter("c1=1").collect.head.getInt(1) == 2)
     assert(df11.filter("c1=1").collect.head.getInt(2) == 3)
     assert(df11.filter("c1=4").collect.size == 0)
+    // update two columns
     df1.write.mode(SaveMode.Append)
       .option("upsert", true).option("upsert_updateColumns", "c2, c3")
       .jdbc(jdbcUrl, "upsertT1", new Properties)
@@ -174,6 +182,48 @@ class MySQLIntegrationSuite extends DockerJDBCIntegrationSuite {
     assert(df12.filter("c1=1").collect.head.getInt(1) == 3)
     assert(df12.filter("c1=1").collect.head.getInt(2) == 6)
     assert(df12.filter("c1=4").collect.size == 1)
+    // update one column
+    df2.write.mode(SaveMode.Append)
+      .option("upsert", true).option("upsert_updateColumns", "c2")
+      .jdbc(jdbcUrl, "upsertT1", new Properties)
+    val df13 = spark.read.jdbc(jdbcUrl, "upsertT1", new Properties())
+    assert(df13.filter("c1=1").collect.head.getInt(1) == 5)
+    assert(df13.filter("c1=1").collect.head.getInt(2) == 6)
+    assert(df13.filter("c1=4").collect.size == 1)
+  }
+
+  test("Upsert test -- data matching two columns") {
+    // update Row(2, 3, 4) to Row(2, 3, 10) that matches 2 columns
+    val df3 = Seq((2, 3, 10)).toDF("c1", "c2", "c3")
+    df3.write.mode(SaveMode.Append)
+      .option("upsert", true).option("upsert_updateColumns", "c3")
+      .jdbc(jdbcUrl, "upsertT1", new Properties)
+    val df31 = spark.read.jdbc(jdbcUrl, "upsertT1", new Properties())
+    assert(df31.filter("c1=2").collect.head.getInt(2) == 10)
 
   }
+  test("Upsert and OverWrite mode test") {
+    // original row(1, 5, 6)
+    val df1 = spark.read.jdbc(jdbcUrl, "upsertT1", new Properties())
+    assert(df1.filter("c1=1").collect.head.getInt(1) == 5)
+    assert(df1.filter("c1=1").collect.head.getInt(2) == 6)
+    val df2 = Seq((1, 3, 6)).toDF("c1", "c2", "c3")
+    // drop table first, then insert new Row (1, 3, 6)
+    // ignore upsert options
+    df2.write.mode(SaveMode.Overwrite)
+      .option("upsert", true).option("upsert_updateColumns", "c2, c3")
+      .jdbc(jdbcUrl, "upsertT1", new Properties)
+    val df21 = spark.read.jdbc(jdbcUrl, "upsertT1", new Properties())
+    assert(df21.filter("c1=1").collect.head.getInt(1) == 3)
+    assert(df21.filter("c1=1").collect.head.getInt(2) == 6)
+    val df4 = Seq((2, 3, 20)).toDF("c1", "c2", "c3")
+    df4.write.mode(SaveMode.Overwrite)
+    .option("upsert", true).option("upsert_updateColumns", "c3")
+    .jdbc(jdbcUrl, "upsertT2", new Properties)
+    val df41 = spark.read.jdbc(jdbcUrl, "upsertT2", new Properties())
+    assert(df41.filter("c1=1").collect.size == 0)
+    assert(df41.filter("c1=2").collect.head.getInt(1) == 3)
+    assert(df41.filter("c1=2").collect.head.getInt(2) == 20)
+  }
+
 }

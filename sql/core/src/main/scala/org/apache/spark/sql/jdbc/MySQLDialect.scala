@@ -84,7 +84,7 @@ private case object MySQLDialect extends JdbcDialect {
          |VALUES ( $placeholders )
          |ON DUPLICATE KEY UPDATE $updateClause
        """.stripMargin
-
+    print("\n mysql upsert: " + s"$sql" + "\n")
     conn.prepareStatement(sql)
   }
 }
