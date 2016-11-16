@@ -44,7 +44,7 @@ case class JdbcType(databaseTypeDefinition : String, jdbcNullType : Int)
  */
 @DeveloperApi
 @InterfaceStability.Evolving
-case class UpsertInfo(val upsertConditionColumns: Array[String],
+case class upsertInfo(val upsertConditionColumns: Array[String],
                       val upsertUpdateColumns: Array[String])
 
 /**
@@ -157,8 +157,8 @@ abstract class JdbcDialect extends Serializable {
      conn: Connection,
      table: String,
      rddSchema: StructType,
-     upsertParam: UpsertInfo =
-       UpsertInfo(Array.empty[String], Array.empty[String])): PreparedStatement = {
+     upsertParam: upsertInfo =
+       upsertInfo(Array.empty[String], Array.empty[String])): PreparedStatement = {
         throw new UnsupportedOperationException("UPSERT operation is not implemented.")
       }
 }

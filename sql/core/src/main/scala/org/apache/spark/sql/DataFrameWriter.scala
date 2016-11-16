@@ -406,11 +406,11 @@ final class DataFrameWriter[T] private[sql](ds: Dataset[T]) {
    * <li>`upsert` (default `false`): under SaveMode.Append mode, specify whether to allow the
    * JDBC data source to update a record that is duplicate of the insertion row. Some databases
    * may require users to specify on which column(s) to identify such duplicate. </li>
-   * <li>`condition_columns`: when `upsert` is `true`, column(s)(separated by comma) need to be
-   * specified, on which duplicate rows are identified. This requirement is applied to database
-   * systems, such as DB2, Oracle, PostgreSQL.</li>
-   * <li>`update_columns`: when `upsert` is `true`, column(s)(separated by comma) need to be
-   * specified, on which duplicate rows are identified. This requirement is applied to database
+   * <li>`upsert_conditionColumns`: when `upsert` is `true`, column(s)(separated by comma) need
+   * to be specified, on which duplicate rows are identified. This requirement is applied to
+   * database systems, such as DB2, Oracle, PostgreSQL.</li>
+   * <li>`upsert_updateColumns`: when `upsert` is `true`, column(s)(separated by comma) could be
+   * specified, on which update rows are identified. This requirement is applied to database
    * systems, such as MySQL.</li>
    * </ul>
    *

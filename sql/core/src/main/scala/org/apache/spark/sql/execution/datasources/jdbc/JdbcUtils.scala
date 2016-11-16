@@ -31,7 +31,7 @@ import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.catalyst.expressions.SpecificInternalRow
 import org.apache.spark.sql.catalyst.util.{DateTimeUtils, GenericArrayData}
-import org.apache.spark.sql.jdbc.{JdbcDialect, JdbcDialects, JdbcType, UpsertInfo}
+import org.apache.spark.sql.jdbc._
 import org.apache.spark.sql.types._
 import org.apache.spark.unsafe.types.UTF8String
 import org.apache.spark.util.NextIterator
@@ -536,8 +536,8 @@ object JdbcUtils extends Logging {
       dialect: JdbcDialect,
       isolationLevel: Int,
       isUpsert: Boolean = false,
-      upsertParam: UpsertInfo =
-      UpsertInfo(Array.empty[String], Array.empty[String])): Iterator[Byte] = {
+      upsertParam: upsertInfo =
+      upsertInfo(Array.empty[String], Array.empty[String])): Iterator[Byte] = {
     val conn = getConnection()
     var committed = false
 
@@ -573,8 +573,7 @@ object JdbcUtils extends Logging {
       }
       val stmt = if (isUpsert) {
         dialect.upsertStatement(conn, table, rddSchema, upsertParam)
-      }
-        else {
+      } else {
         insertStatement(conn, table, rddSchema, dialect)
       }
       val setters: Array[JDBCValueSetter] = rddSchema.fields.map(_.dataType)
@@ -679,7 +678,7 @@ object JdbcUtils extends Logging {
     val isUpsert = (options.isUpsert && (mode == SaveMode.Append))
     val upsertUpdateColumns = options.upsert_updateColumn
     val upsertConditionColumns = options.upsert_conditionColumn
-    val upsertParam = new UpsertInfo(upsertConditionColumns, upsertUpdateColumns)
+    val upsertParam = upsertInfo(upsertConditionColumns, upsertUpdateColumns)
     df.foreachPartition(iterator => savePartition(
       getConnection, table, iterator, rddSchema, nullTypes, batchSize, dialect,
       isolationLevel, isUpsert, upsertParam)

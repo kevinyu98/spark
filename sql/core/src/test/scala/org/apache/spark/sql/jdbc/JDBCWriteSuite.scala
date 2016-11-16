@@ -49,8 +49,8 @@ class JDBCWriteSuite extends SharedSQLContext with BeforeAndAfter {
       Some(StringType)
     override def isCascadingTruncateTable(): Option[Boolean] = Some(false)
     override def upsertStatement(
-        conn: Connection, table: String, rddSchema: StructType, upsertParam: UpsertInfo =
-    UpsertInfo(Array.empty[String], Array.empty[String])): PreparedStatement = {
+        conn: Connection, table: String, rddSchema: StructType, upsertParam: upsertInfo =
+    upsertInfo(Array.empty[String], Array.empty[String])): PreparedStatement = {
 
       if (!upsertParam.upsertConditionColumns.forall(rddSchema.fieldNames.contains(_))) {
         throw new IllegalArgumentException(

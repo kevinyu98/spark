@@ -54,8 +54,8 @@ private case object MySQLDialect extends JdbcDialect {
       conn: Connection,
       table: String,
       rddSchema: StructType,
-      upsertParam: UpsertInfo =
-        UpsertInfo(Array.empty[String], Array.empty[String])): PreparedStatement = {
+      upsertParam: upsertInfo =
+        upsertInfo(Array.empty[String], Array.empty[String])): PreparedStatement = {
     require(upsertParam.upsertUpdateColumns.nonEmpty,
       "Upsert option requires update column names." +
         "Please specify option(\"upsert_updateColumn\", \"c1, c2, ...\")")

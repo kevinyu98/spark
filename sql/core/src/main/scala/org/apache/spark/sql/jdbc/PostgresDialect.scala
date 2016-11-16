@@ -109,8 +109,8 @@ private object PostgresDialect extends JdbcDialect {
       conn: Connection,
       table: String,
       rddSchema: StructType,
-      upsertParam: UpsertInfo =
-      UpsertInfo(Array.empty[String], Array.empty[String])): PreparedStatement = {
+      upsertParam: upsertInfo =
+      upsertInfo(Array.empty[String], Array.empty[String])): PreparedStatement = {
     require(upsertParam.upsertConditionColumns.nonEmpty,
       "Upsert option requires column names on which duplicate rows are identified. " +
          "Please specify option(\"upsert_conditionColumns\", \"c1, c2, ...\")")
