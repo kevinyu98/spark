@@ -406,10 +406,10 @@ final class DataFrameWriter[T] private[sql](ds: Dataset[T]) {
    * <li>`upsert` (default `false`): under SaveMode.Append mode, specify whether to allow the
    * JDBC data source to update a record that is duplicate of the insertion row. Some databases
    * may require users to specify on which column(s) to identify such duplicate. </li>
-   * <li>`upsert_conditionColumns`: when `upsert` is `true`, column(s)(separated by comma) need
+   * <li>`upsertConditionColumns`: when `upsert` is `true`, column(s)(separated by comma) need
    * to be specified, on which duplicate rows are identified. This requirement is applied to
    * database systems, such as DB2, Oracle, PostgreSQL.</li>
-   * <li>`upsert_updateColumns`: when `upsert` is `true`, column(s)(separated by comma) could be
+   * <li>`upsertUpdateColumns`: when `upsert` is `true`, column(s)(separated by comma) could be
    * specified, on which update rows are identified. This requirement is applied to database
    * systems, such as MySQL.</li>
    * </ul>
@@ -420,6 +420,24 @@ final class DataFrameWriter[T] private[sql](ds: Dataset[T]) {
    * while PostgresDialect and default JDBCDirect doesn't. For unknown and unsupported JDBCDirect,
    * the user option `truncate` is ignored.
    *
+   * When use the upsert feature, please be aware these limitations.
+   * First, if the content of the [[DataFrame]] has mutiple rows with the same key, the upsert feature will
+   * be non-deterministic, the reason is that the data will be partitioned and send to the data
+   * source with different JDBC connection. You can avoid this by eliminating the duplicate key rows
+   * first, then save to the JDBC datasource tables. For example: the key is on columns("key", "values1")
+   *
+   * {{{
+   *    scala> val testData = sc.parallelize((2, 1, 2) :: (1, 1, 1) :: (1, 2, 3) :: (2, 1, 3) :: (2, 2, 2) ::
+   *                                         (2, 2, 1) :: (2, 1, 4) :: (1, 1, 4) :: (1, 2, 5) :: (1, 2, 6) ::
+   *                                         Nil, 5).toDF("key", "value1", “TS")
+   *    scala> val sorted = testData.orderBy(‘key,'value1)
+   *    scala> val agg = sorted.groupBy('key).agg("TS" -> “max").withColumnRenamed("max(TS)","TS")
+   *    scala> agg.join(sorted, Seq("key","TS"))
+   * }}}
+   * Second, this upsert feature is only supported for SaveMode.Append. SaveMode.Overwrite will
+   * first empty the table, then do the insert, also in order to get deterministic result, we recommend to
+   * remove duplicate key rows in the content of the [[DataFrame]], so there is no need to implement upsert
+   * in the SaveMode.Append.
    * @param url JDBC database url of the form `jdbc:subprotocol:subname`
    * @param table Name of the table in the external database.
    * @param connectionProperties JDBC database connection arguments, a list of arbitrary string

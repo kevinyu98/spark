@@ -40,11 +40,11 @@ case class JdbcType(databaseTypeDefinition : String, jdbcNullType : Int)
  * the duplicate key columns and update columns send to the database
  * values to the database.
  * @param upsertConditionColumns The duplicate key columns
- * @param upsertUpdateColumns The update columns
+ * @param upsertUpdateColumns The columns to be updated
  */
 @DeveloperApi
 @InterfaceStability.Evolving
-case class upsertInfo(val upsertConditionColumns: Array[String],
+case class UpsertInfo(val upsertConditionColumns: Array[String],
                       val upsertUpdateColumns: Array[String])
 
 /**
@@ -154,13 +154,12 @@ abstract class JdbcDialect extends Serializable {
    * @return PreparedStatement
    */
   def upsertStatement(
-     conn: Connection,
-     table: String,
-     rddSchema: StructType,
-     upsertParam: upsertInfo =
-       upsertInfo(Array.empty[String], Array.empty[String])): PreparedStatement = {
-        throw new UnsupportedOperationException("UPSERT operation is not implemented.")
-      }
+      conn: Connection,
+      table: String,
+      rddSchema: StructType,
+      upsertParam: UpsertInfo = UpsertInfo(Array(), Array())) = {
+    throw new UnsupportedOperationException("UPSERT operation is not implemented.")
+  }
 }
 
 /**

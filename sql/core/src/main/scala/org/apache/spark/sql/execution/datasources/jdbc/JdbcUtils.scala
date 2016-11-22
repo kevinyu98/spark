@@ -18,7 +18,6 @@
 package org.apache.spark.sql.execution.datasources.jdbc
 
 import java.sql.{Connection, Driver, DriverManager, PreparedStatement, ResultSet, ResultSetMetaData, SQLException}
-
 import scala.collection.JavaConverters._
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -26,7 +25,7 @@ import scala.util.control.NonFatal
 import org.apache.spark.TaskContext
 import org.apache.spark.executor.InputMetrics
 import org.apache.spark.internal.Logging
-import org.apache.spark.sql.{DataFrame, Row, SaveMode}
+import org.apache.spark.sql.{DataFrame, Row, SaveMode, SparkSession}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.catalyst.expressions.SpecificInternalRow
@@ -536,8 +535,7 @@ object JdbcUtils extends Logging {
       dialect: JdbcDialect,
       isolationLevel: Int,
       isUpsert: Boolean = false,
-      upsertParam: upsertInfo =
-      upsertInfo(Array.empty[String], Array.empty[String])): Iterator[Byte] = {
+      upsertParam: UpsertInfo = UpsertInfo(Array(), Array())): Iterator[Byte] = {
     val conn = getConnection()
     var committed = false
 
@@ -676,12 +674,55 @@ object JdbcUtils extends Logging {
     val batchSize = options.batchSize
     val isolationLevel = options.isolationLevel
     val isUpsert = (options.isUpsert && (mode == SaveMode.Append))
-    val upsertUpdateColumns = options.upsert_updateColumn
-    val upsertConditionColumns = options.upsert_conditionColumn
-    val upsertParam = upsertInfo(upsertConditionColumns, upsertUpdateColumns)
-    df.foreachPartition(iterator => savePartition(
-      getConnection, table, iterator, rddSchema, nullTypes, batchSize, dialect,
-      isolationLevel, isUpsert, upsertParam)
+
+    df.foreachPartition(iterator =>
+      if (isUpsert) {
+        val upsertUpdateColumns = options.upsertUpdateColumn
+        val upsertConditionColumns = options.upsertConditionColumn
+        val upsertParam = UpsertInfo(upsertConditionColumns, upsertUpdateColumns)
+
+        if (df.sparkSession.sessionState.conf.caseSensitiveAnalysis) {
+          if (!upsertParam.upsertUpdateColumns.forall(rddSchema.fieldNames.contains(_))) {
+            throw new IllegalArgumentException(
+              s"""
+               |Update columns specified should be a subset of the schema in the input dataset.
+               |schema: ${rddSchema.fieldNames.mkString(", ")}
+
+                 |condition_columns: ${upsertParam.upsertUpdateColumns.mkString(", ")}
+               """.stripMargin)
+          }
+
+        if (!upsertParam.upsertConditionColumns.forall(rddSchema.fieldNames.contains(_))) {
+          throw new IllegalArgumentException(
+            s"""
+               |Condition columns specified should be a subset of the schema in the input dataset.
+               |schema: ${rddSchema.fieldNames.mkString(", ")}
+               |condition_columns: ${upsertParam.upsertConditionColumns.mkString(", ")}
+            """.stripMargin)
+        }
+      }
+        savePartition(
+          getConnection,
+          table,
+          iterator,
+          rddSchema,
+          nullTypes,
+          batchSize,
+          dialect,
+          isolationLevel,
+          isUpsert,
+          upsertParam)
+      } else {
+          savePartition(
+            getConnection,
+            table,
+            iterator,
+            rddSchema,
+            nullTypes,
+            batchSize,
+            dialect,
+            isolationLevel)
+      }
     )
   }
 
