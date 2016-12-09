@@ -49,27 +49,28 @@ class JDBCWriteSuite extends SharedSQLContext with BeforeAndAfter {
       Some(StringType)
     override def isCascadingTruncateTable(): Option[Boolean] = Some(false)
     override def upsertStatement(
-        conn: Connection, table: String, rddSchema: StructType, upsertParam: upsertInfo =
-    upsertInfo(Array.empty[String], Array.empty[String])): PreparedStatement = {
-
-      if (!upsertParam.upsertConditionColumns.forall(rddSchema.fieldNames.contains(_))) {
-        throw new IllegalArgumentException(
-          s"""
-             |Condition columns specified should be a subset of the schema in the input dataset.
-             |schema: ${rddSchema.fieldNames.mkString(", ")}
-             |condition_columns: ${upsertParam.upsertConditionColumns.mkString(", ")}
-         """.stripMargin)
-      }
+        conn: Connection,
+        table: String,
+        rddSchema: StructType,
+        upsertParam: UpsertInfo =
+        UpsertInfo(Array(), Array())): PreparedStatement = {
 
       val columnNames = rddSchema.fields.map(_.name).mkString(", ")
       val keyNames = upsertParam.upsertConditionColumns.mkString(", ")
       val placeholders = rddSchema.fields.map(_ => "?").mkString(",")
       val sql =
+      if (keyNames != null && !keyNames.isEmpty) {
         s"""
            |MERGE INTO $table ($columnNames)
            |KEY($keyNames)
            |VALUES($placeholders)
        """.stripMargin
+      } else {
+        s"""
+           |MERGE INTO $table ($columnNames)
+           |VALUES($placeholders)
+       """.stripMargin
+      }
       conn.prepareStatement(sql)
 
     }
@@ -130,12 +131,15 @@ class JDBCWriteSuite extends SharedSQLContext with BeforeAndAfter {
       StructField("id", IntegerType) ::
       StructField("seq", IntegerType) :: Nil)
 
+  private lazy val ary1x2 = Array[Row](Row.apply(1, 42))
+  private lazy val ary12x2 = Array[Row](Row.apply(2, 52))
+  private lazy val ary13x2 = Array[Row](Row.apply(1, 62))
+  private lazy val ary14x2 = Array[Row](Row.apply(1, 72))
   private lazy val ary2x2 = Array[Row](Row.apply(1, 52), Row.apply(2, 222))
+  private lazy val ary3x2 = Array[Row](Row.apply(1, 10), Row.apply(2, 20), Row.apply(1, 30))
   private lazy val schema4 = StructType(
     StructField("C1", IntegerType) ::
     StructField("C2", IntegerType) :: Nil)
-  private lazy val ary1x2 = Array[Row](Row.apply(1, 42))
-  private lazy val ary2x3 = Array[Row](Row.apply(1, 10), Row.apply(2, 20), Row.apply(1, 30))
 
   test("Basic CREATE") {
     val df = spark.createDataFrame(sparkContext.parallelize(arr2x2), schema2)
@@ -227,35 +231,160 @@ class JDBCWriteSuite extends SharedSQLContext with BeforeAndAfter {
     JdbcDialects.unregisterDialect(testH2Dialect)
   }
 
-  test("upsert") {
+  test("upsert with Overwrite") {
     JdbcDialects.registerDialect(testH2Dialect)
-    val df = spark.createDataFrame(sparkContext.parallelize(ary2x2), schema4)
-    val df1 = spark.createDataFrame(sparkContext.parallelize(ary1x2), schema4)
-    val df2 = spark.createDataFrame(sparkContext.parallelize(ary2x3), schema4)
+    val df = spark.createDataFrame(sparkContext.parallelize(ary1x2), schema4)
+    val df1 = spark.createDataFrame(sparkContext.parallelize(ary2x2), schema4)
 
-    df.write.mode(SaveMode.Append).option("upsert", true).option("upsert_conditionColumn", "C1")
+    df.write.mode(SaveMode.Overwrite).option("upsert", true).option("upsertConditionColumn", "C1")
+      .jdbc(url1, "TEST.UPSERT", properties)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT", properties).count() == 1)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT", properties).filter("C1=1")
+      .collect.head.get(1) == "42")
+
+    df1.write.mode(SaveMode.Overwrite).option("upsert", false).option("upsertConditionColumn", "C1")
       .jdbc(url1, "TEST.UPSERT", properties)
     assert(spark.read.jdbc(url1, "TEST.UPSERT", properties).count() == 2)
     assert(spark.read.jdbc(url1, "TEST.UPSERT", properties).filter("C1=1")
       .collect.head.get(1) == "52")
 
+    JdbcDialects.unregisterDialect(testH2Dialect)
+  }
+
+  test("upsert with Append and case insensitive") {
+    JdbcDialects.registerDialect(testH2Dialect)
+    val df = spark.createDataFrame(sparkContext.parallelize(ary1x2), schema4)
+    val df1 = spark.createDataFrame(sparkContext.parallelize(ary12x2), schema4)
+    val df2 = spark.createDataFrame(sparkContext.parallelize(ary13x2), schema4)
+
+    df.write.mode(SaveMode.Append).option("upsert", true).option("upsertConditionColumn", "C1")
+      .jdbc(url1, "TEST.UPSERT1", properties)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT1", properties).count() == 1)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT1", properties).filter("C1=1")
+      .collect.head.get(1) == "42")
+
+    df1.write.mode(SaveMode.Append).option("upsert", false).option("upsertConditionColumn", "c1")
+      .jdbc(url1, "TEST.UPSERT1", properties)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT1", properties).count() == 2)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT1", properties).filter("C1=1")
+      .collect.head.get(1) == "42")
+
+    df2.write.mode(SaveMode.Append).option("upsert", true).option("upsertConditionColumn", "c1")
+      .jdbc(url1, "TEST.UPSERT1", properties)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT1", properties).count() == 2)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT1", properties).filter("C1=1")
+      .collect.head.get(1) == "62")
+
+    JdbcDialects.unregisterDialect(testH2Dialect)
+  }
+
+  test("upsert with Append and case sensitive") {
+    JdbcDialects.registerDialect(testH2Dialect)
+    val df = spark.createDataFrame(sparkContext.parallelize(ary1x2), schema4)
+    val df1 = spark.createDataFrame(sparkContext.parallelize(ary12x2), schema4)
+    val df2 = spark.createDataFrame(sparkContext.parallelize(ary13x2), schema4)
+
+    spark.sql("set spark.sql.caseSensitive=true")
+    df.write.mode(SaveMode.Append).option("upsert", true).option("upsertConditionColumn", "C1")
+      .jdbc(url1, "TEST.UPSERT1", properties)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT1", properties).count() == 1)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT1", properties).filter("C1=1")
+      .collect.head.get(1) == "42")
+
+    df1.write.mode(SaveMode.Append).option("upsert", false).option("upsertConditionColumn", "c1")
+      .jdbc(url1, "TEST.UPSERT1", properties)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT1", properties).count() == 2)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT1", properties).filter("C1=1")
+      .collect.head.get(1) == "42")
+
+    val m = intercept[org.apache.spark.sql.AnalysisException] {
+      df2.write.mode(SaveMode.Append).option("upsert", true).option("upsertConditionColumn", "c1")
+        .jdbc(url1, "TEST.UPSERT1", properties)
+    }.getMessage
+    assert(m.contains("column c1 not found"))
+    spark.sql("set spark.sql.caseSensitive=false")
+    JdbcDialects.unregisterDialect(testH2Dialect)
+  }
+
+  test("upsert with Append and negative option values") {
+    JdbcDialects.registerDialect(testH2Dialect)
+    val df = spark.createDataFrame(sparkContext.parallelize(ary1x2), schema4)
+    val df1 = spark.createDataFrame(sparkContext.parallelize(ary12x2), schema4)
+
+    val m = intercept[org.apache.spark.sql.AnalysisException] {
+    df.write.mode(SaveMode.Append).option("upsert", true).option("upsertConditionColumn", "C11")
+      .jdbc(url1, "TEST.UPSERT2", properties)
+    }.getMessage
+    assert(m.contains("column C11 not found"))
+
+    val n = intercept[org.apache.spark.sql.AnalysisException] {
+    df.write.mode(SaveMode.Append).option("upsert", true).option("upsertUpdateColumn", "c12")
+      .jdbc(url1, "TEST.UPSERT2", properties)
+    }.getMessage
+    assert(n.contains("column c12 not found"))
+
+    // invalid option for upsertUpdateColumn and new table
+    val o = intercept[org.apache.spark.SparkException] {
+    df.write.mode(SaveMode.Append).option("upsert", true).option("UpsertUpdateColumn", "c1")
+      .jdbc(url1, "TEST.UPSERT2", properties)
+    }.getMessage
+    assert(o.contains("Index \"PRIMARY_KEY_\" not found"))
+
+
+    JdbcDialects.unregisterDialect(testH2Dialect)
+  }
+
+  test("upsert with Append without existing table") {
+    JdbcDialects.registerDialect(testH2Dialect)
+    val df = spark.createDataFrame(sparkContext.parallelize(ary1x2), schema4)
+    val df1 = spark.createDataFrame(sparkContext.parallelize(ary12x2), schema4)
+    val df2 = spark.createDataFrame(sparkContext.parallelize(ary13x2), schema4)
+    val df3 = spark.createDataFrame(sparkContext.parallelize(ary14x2), schema4)
+
+    df.write.mode(SaveMode.Append).option("upsert", true).option("upsertConditionColumn", "C1")
+      .jdbc(url1, "TEST.UPSERT", properties)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT", properties).count() == 1)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT", properties).filter("C1=1")
+      .collect.head.get(1) == "42")
+
+    df2.write.mode(SaveMode.Append).option("upsert", true).option("upsertConditionColumn", "C1")
+      .jdbc(url1, "TEST.UPSERT", properties)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT", properties).count() == 1)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT", properties).filter("C1=1")
+      .collect.head.get(1) == "62")
+
+    // turn it off, it will insert one more row
+    df3.write.mode(SaveMode.Append).option("upsert", false).option("upsertConditionColumn", "C1")
+      .jdbc(url1, "TEST.UPSERT", properties)
+    assert(spark.read.jdbc(url1, "TEST.UPSERT", properties).count() == 2)
+
+    JdbcDialects.unregisterDialect(testH2Dialect)
+  }
+
+  test("upsert with Append with existing table") {
+    JdbcDialects.registerDialect(testH2Dialect)
+    val df = spark.createDataFrame(sparkContext.parallelize(ary1x2), schema4)
+    val df1 = spark.createDataFrame(sparkContext.parallelize(ary12x2), schema4)
+    val df2 = spark.createDataFrame(sparkContext.parallelize(ary13x2), schema4)
+    val df3 = spark.createDataFrame(sparkContext.parallelize(ary14x2), schema4)
+
     assert(spark.read.jdbc(url1, "test.upsertT1", properties).count() == 2)
     assert(spark.read.jdbc(url1, "test.upsertT1", properties).filter("C1=1")
       .collect.head.get(1) == "10")
-    df.write.mode(SaveMode.Append).option("upsert", true).option("upsert_conditionColumn", "C1")
+    df.write.mode(SaveMode.Append).option("upsert", true).option("upsertConditionColumn", "C1")
       .jdbc(url1, "test.upsertT1", properties)
     assert(spark.read.jdbc(url1, "test.upsertT1", properties).filter("C1=1")
-    .collect.head.get(1) == "52")
+    .collect.head.get(1) == "42")
    // Overwrite will drop the table, then insert the dataframe rows into the empty table
-    df1.write.mode(SaveMode.Overwrite).option("upsert", true).option("upsert_conditionColumn", "C1")
+    df2.write.mode(SaveMode.Overwrite).option("upsert", true).option("upsertConditionColumn", "C1")
       .jdbc(url1, "test.upsertT1", properties)
     assert(spark.read.jdbc(url1, "test.upsertT1", properties).filter("C1=1")
-      .collect.head.get(1) == "42")
-   // Append without upsert option, it will not insert the value (1, 30) into the table
-    df2.write.mode(SaveMode.Append).option("upsert_conditionColumn", "c1")
+      .collect.head.get(1) == "62")
+   // Append without upsert option, it will not insert the value into the table
+    df3.write.mode(SaveMode.Append).option("upsert", false).option("upsertConditionColumn", "c1")
     .jdbc(url1, "test.upsertT1", properties)
     assert(spark.read.jdbc(url1, "test.upsertT1", properties).filter("C1=1")
-      .collect.head.get(1) == "42")
+      .collect.head.get(1) == "62")
     JdbcDialects.unregisterDialect(testH2Dialect)
   }
 

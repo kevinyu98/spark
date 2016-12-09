@@ -54,19 +54,19 @@ private case object MySQLDialect extends JdbcDialect {
       conn: Connection,
       table: String,
       rddSchema: StructType,
-      upsertParam: UpsertInfo = UpsertInfo(Array(), Array())): PreparedStatement = {
+      upsertParam: UpsertInfo = UpsertInfo(Array.empty, Array.empty)): PreparedStatement = {
     require(upsertParam.upsertUpdateColumns.nonEmpty,
       "Upsert option requires update column names." +
-        "Please specify option(\"upsert_updateColumn\", \"c1, c2, ...\")")
+        "Please specify option(\"upsertUpdateColumn\", \"c1, c2, ...\")")
 
-    if (!upsertParam.upsertUpdateColumns.forall(rddSchema.fieldNames.contains(_))) {
-      throw new IllegalArgumentException(
-        s"""
-           |Update columns specified should be a subset of the schema in the input dataset.
-           |schema: ${rddSchema.fieldNames.mkString(", ")}
-           |condition_columns: ${upsertParam.upsertUpdateColumns.mkString(", ")}
-        """.stripMargin)
-    }
+  //  if (!upsertParam.upsertUpdateColumns.forall(rddSchema.fieldNames.contains(_))) {
+  //    throw new IllegalArgumentException(
+  //      s"""
+  //         |Update columns specified should be a subset of the schema in the input dataset.
+  //         |schema: ${rddSchema.fieldNames.mkString(", ")}
+  //         |condition_columns: ${upsertParam.upsertUpdateColumns.mkString(", ")}
+  //      """.stripMargin)
+  //  }
 
     val updateClause = if (upsertParam.upsertUpdateColumns.nonEmpty) {
       upsertParam.upsertUpdateColumns.map(x => s"$x = VALUES($x)").mkString(", ")
@@ -83,7 +83,6 @@ private case object MySQLDialect extends JdbcDialect {
          |VALUES ( $placeholders )
          |ON DUPLICATE KEY UPDATE $updateClause
        """.stripMargin
-    print("\n mysql upsert: " + s"$sql" + "\n")
     conn.prepareStatement(sql)
   }
 }

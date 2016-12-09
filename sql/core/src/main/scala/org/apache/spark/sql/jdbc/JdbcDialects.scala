@@ -157,7 +157,7 @@ abstract class JdbcDialect extends Serializable {
       conn: Connection,
       table: String,
       rddSchema: StructType,
-      upsertParam: UpsertInfo = UpsertInfo(Array(), Array())) = {
+      upsertParam: UpsertInfo = UpsertInfo(Array(), Array())): PreparedStatement = {
     throw new UnsupportedOperationException("UPSERT operation is not implemented.")
   }
 }

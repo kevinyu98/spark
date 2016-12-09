@@ -18,6 +18,7 @@
 package org.apache.spark.sql.execution.datasources.jdbc
 
 import java.sql.{Connection, Driver, DriverManager, PreparedStatement, ResultSet, ResultSetMetaData, SQLException}
+
 import scala.collection.JavaConverters._
 import scala.util.Try
 import scala.util.control.NonFatal
@@ -25,7 +26,7 @@ import scala.util.control.NonFatal
 import org.apache.spark.TaskContext
 import org.apache.spark.executor.InputMetrics
 import org.apache.spark.internal.Logging
-import org.apache.spark.sql.{DataFrame, Row, SaveMode, SparkSession}
+import org.apache.spark.sql.{DataFrame, Row, SaveMode}
 import org.apache.spark.sql.catalyst.InternalRow
 import org.apache.spark.sql.catalyst.encoders.RowEncoder
 import org.apache.spark.sql.catalyst.expressions.SpecificInternalRow
@@ -114,6 +115,7 @@ object JdbcUtils extends Logging {
     val columns = rddSchema.fields.map(x => dialect.quoteIdentifier(x.name)).mkString(",")
     val placeholders = rddSchema.fields.map(_ => "?").mkString(",")
     val sql = s"INSERT INTO $table ($columns) VALUES ($placeholders)"
+    print("\n mysql insert: " + s"$sql" + "\n")
     conn.prepareStatement(sql)
   }
 
@@ -663,7 +665,8 @@ object JdbcUtils extends Logging {
       url: String,
       table: String,
       options: JDBCOptions,
-      mode: SaveMode) {
+      mode: SaveMode,
+      newTableFlag: Boolean = false) {
     val dialect = JdbcDialects.get(url)
     val nullTypes: Array[Int] = df.schema.fields.map { field =>
       getJdbcType(field.dataType, dialect).jdbcNullType
@@ -673,34 +676,23 @@ object JdbcUtils extends Logging {
     val getConnection: () => Connection = createConnectionFactory(options)
     val batchSize = options.batchSize
     val isolationLevel = options.isolationLevel
-    val isUpsert = (options.isUpsert && (mode == SaveMode.Append))
-
-    df.foreachPartition(iterator =>
-      if (isUpsert) {
-        val upsertUpdateColumns = options.upsertUpdateColumn
-        val upsertConditionColumns = options.upsertConditionColumn
-        val upsertParam = UpsertInfo(upsertConditionColumns, upsertUpdateColumns)
-
-        if (df.sparkSession.sessionState.conf.caseSensitiveAnalysis) {
-          if (!upsertParam.upsertUpdateColumns.forall(rddSchema.fieldNames.contains(_))) {
-            throw new IllegalArgumentException(
-              s"""
-               |Update columns specified should be a subset of the schema in the input dataset.
-               |schema: ${rddSchema.fieldNames.mkString(", ")}
-
-                 |condition_columns: ${upsertParam.upsertUpdateColumns.mkString(", ")}
-               """.stripMargin)
-          }
-
-        if (!upsertParam.upsertConditionColumns.forall(rddSchema.fieldNames.contains(_))) {
-          throw new IllegalArgumentException(
-            s"""
-               |Condition columns specified should be a subset of the schema in the input dataset.
-               |schema: ${rddSchema.fieldNames.mkString(", ")}
-               |condition_columns: ${upsertParam.upsertConditionColumns.mkString(", ")}
-            """.stripMargin)
-        }
-      }
+    val isUpsert = if (options.isUpsert && (mode == SaveMode.Append)) {
+      if (newTableFlag) {
+        logWarning("UPSERT operation is not applicable for a brand new table, " +
+          "regular INSERT operation will be done.")
+        false
+      } else true
+    } else false
+    print("/n saveTable isUpsert: " + isUpsert + "newtableFlag: " + newTableFlag + "\n")
+    // if upsert feature is on, validate the column name and prepare the upserParam
+    if (isUpsert) {
+      val upsertUpdateColumns = options.upsertUpdateColumn
+      val upsertConditionColumns = options.upsertConditionColumn
+      val upsertParam = UpsertInfo(upsertConditionColumns, upsertUpdateColumns)
+      val caseSensitive = df.sparkSession.sessionState.conf.caseSensitiveAnalysis
+      validateColumn(rddSchema, upsertParam.upsertUpdateColumns, caseSensitive)
+      validateColumn(rddSchema, upsertParam.upsertConditionColumns, caseSensitive)
+      df.foreachPartition(iterator =>
         savePartition(
           getConnection,
           table,
@@ -712,18 +704,40 @@ object JdbcUtils extends Logging {
           isolationLevel,
           isUpsert,
           upsertParam)
-      } else {
-          savePartition(
-            getConnection,
-            table,
-            iterator,
-            rddSchema,
-            nullTypes,
-            batchSize,
-            dialect,
-            isolationLevel)
+      )
+    } else {
+      df.foreachPartition(iterator =>
+        savePartition(
+          getConnection,
+          table,
+          iterator,
+          rddSchema,
+          nullTypes,
+          batchSize,
+          dialect,
+          isolationLevel)
+      )
+    }
+  }
+
+  /**
+   *  Validate the column name for Upsert with caseSensitive/inSensitive
+   */
+  def validateColumn(
+      schema: StructType,
+      upsertColumns: Seq[String],
+      caseSensitive: Boolean): Unit = {
+    upsertColumns.map { col =>
+      schema.find { f =>
+        if (caseSensitive) {
+          org.apache.spark.sql.catalyst.analysis.caseSensitiveResolution(f.name, col)
+        } else {
+          org.apache.spark.sql.catalyst.analysis.caseInsensitiveResolution(f.name, col)
+        }
+      }.getOrElse {
+        throw new SQLException(s"upsert column $col not found in schema $schema")
       }
-    )
+    }
   }
 
   /**

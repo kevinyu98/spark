@@ -53,6 +53,10 @@ class PostgresIntegrationSuite extends DockerJDBCIntegrationSuite {
       + "B'1000100101', E'\\\\xDEADBEEF', true, '172.16.0.42', '192.168.0.0/16', "
       + """'{1, 2}', '{"a", null, "b"}', '{0.11, 0.22}', '{0.11, 0.22}', 'd1', 1.01, 1)"""
     ).executeUpdate()
+    conn.prepareStatement("CREATE TABLE upsertT0 " +
+      "(c1 INTEGER, c2 INTEGER, c3 INTEGER, primary key(c1))").executeUpdate()
+    conn.prepareStatement("INSERT INTO upsertT0 VALUES (1, 2, 3), (2, 3, 4), (3, 4, 5)")
+      .executeUpdate()
     conn.prepareStatement("CREATE TABLE upsertT1 " +
       "(c1 INTEGER, c2 INTEGER, c3 INTEGER, primary key(c1))").executeUpdate()
     conn.prepareStatement("INSERT INTO upsertT1 VALUES (1, 2, 3), (2, 3, 4), (3, 4, 5)")
@@ -129,6 +133,63 @@ class PostgresIntegrationSuite extends DockerJDBCIntegrationSuite {
     assert(schema(1).dataType == ShortType)
   }
 
+  test("Upsert and OverWrite mode") {
+    //existing table has these rows
+    //(1, 2, 3), (2, 3, 4), (3, 4, 5)
+    val df1 = spark.read.jdbc(jdbcUrl, "upsertT0", new Properties())
+    assert(df1.filter("c1=1").collect.head.getInt(1) == 2)
+    assert(df1.filter("c1=1").collect.head.getInt(2) == 3)
+    assert(df1.filter("c1=2").collect.head.getInt(1) == 3)
+    assert(df1.filter("c1=2").collect.head.getInt(2) == 4)
+    val df2 = Seq((1, 3, 6), (2, 5, 6)).toDF("c1", "c2", "c3")
+    // it will do the Overwrite, not upsert
+    df2.write.mode(SaveMode.Overwrite)
+      .option("upsert", true).option("upsertConditionColumn", "c1")
+      .jdbc(jdbcUrl, "upsertT0", new Properties)
+    val df3 = spark.read.jdbc(jdbcUrl, "upsertT0", new Properties())
+    assert(df3.filter("c1=1").collect.head.getInt(1) == 3)
+    assert(df3.filter("c1=1").collect.head.getInt(2) == 6)
+    assert(df3.filter("c1=2").collect.head.getInt(1) == 5)
+    assert(df3.filter("c1=2").collect.head.getInt(2) == 6)
+    assert(df3.filter("c1=3").collect.size == 0)
+  }
+
+  test("upsert with Append and negative option values") {
+    val df1 = Seq((1, 3, 6), (2, 5, 6)).toDF("c1", "c2", "c3")
+    val m = intercept[java.sql.SQLException] {
+    df1.write.mode(SaveMode.Append).option("upsert", true).option("upsertConditionColumn", "C11")
+      .jdbc(jdbcUrl, "upsertT1", new Properties)
+    }.getMessage
+    assert(m.contains("column C11 not found"))
+
+    val n = intercept[java.sql.SQLException] {
+    df1.write.mode(SaveMode.Append).option("upsert", true).option("upsertConditionColumn", "C11")
+      .jdbc(jdbcUrl, "upsertT1", new Properties)
+    }.getMessage
+    assert(n.contains("column C11 not found"))
+
+    val o = intercept[org.apache.spark.SparkException] {
+    df1.write.mode(SaveMode.Append).option("upsert", true).option("upsertconditionColumn", "c1")
+      .jdbc(jdbcUrl, "upsertT1", new Properties)
+    }.getMessage
+    assert(o.contains("Upsert option requires column names on which duplicate rows are identified"))
+  }
+
+  test("upsert with Append without existing table") {
+    val df1 = Seq((1, 3), (2, 5)).toDF("c1", "c2")
+    df1.write.mode(SaveMode.Append).option("upsert", true).option("upsertConditionColumn", "c1")
+      .jdbc(jdbcUrl, "upsertT", new Properties)
+    val df2 = spark.read.jdbc(jdbcUrl, "upsertT", new Properties)
+    assert(df2.count() == 2)
+    assert(df2.filter("C1=1").collect.head.get(1) == 3)
+
+    // table upsertT create without primary key or unique constraints, it will do the insert
+    val df3 = Seq((1, 4)).toDF("c1", "c2")
+    df3.write.mode(SaveMode.Append).option("upsert", true).option("upsertConditionColumn", "c1")
+      .jdbc(jdbcUrl, "upsertT", new Properties)
+    assert(spark.read.jdbc(jdbcUrl, "upsertT", new Properties).filter("c1=1").count() == 2)
+  }
+
   test("Upsert & Append test  -- matching one column") {
     val df1 = spark.read.jdbc(jdbcUrl, "upsertT1", new Properties())
     assert(df1.filter("c1=1").collect.head.getInt(1) == 2)
@@ -138,7 +199,7 @@ class PostgresIntegrationSuite extends DockerJDBCIntegrationSuite {
     val df2 = Seq((1, 3, 6), (4, 5, 6)).toDF("c1", "c2", "c3")
     // condition on one column
     df2.write.mode(SaveMode.Append)
-      .option("upsert", true).option("upsert_conditionColumns", "c1")
+      .option("upsert", true).option("upsertConditionColumn", "c1")
       .jdbc(jdbcUrl, "upsertT1", new Properties)
     val df3 = spark.read.jdbc(jdbcUrl, "upsertT1", new Properties())
     assert(df3.filter("c1=1").collect.head.getInt(1) == 3)
@@ -153,33 +214,9 @@ class PostgresIntegrationSuite extends DockerJDBCIntegrationSuite {
     // update Row(2, 3, 4) to Row(2, 3, 10) that matches 2 columns
     val df2 = Seq((2, 3, 10)).toDF("c1", "c2", "c3")
     df2.write.mode(SaveMode.Append)
-      .option("upsert", true).option("upsert_conditionColumns", "c1, c2")
+      .option("upsert", true).option("upsertConditionColumn", "c1, c2")
       .jdbc(jdbcUrl, "upsertT2", new Properties)
     val df3 = spark.read.jdbc(jdbcUrl, "upsertT2", new Properties())
     assert(df3.filter("c1=2").collect.head.getInt(2) == 10)
-  }
-
-  test("Upsert and OverWrite mode test") {
-    // original row(1, 3, 6)
-    val df1 = spark.read.jdbc(jdbcUrl, "upsertT1", new Properties())
-    assert(df1.filter("c1=1").collect.head.getInt(1) == 3)
-    assert(df1.filter("c1=1").collect.head.getInt(2) == 6)
-    val df2 = Seq((1, 5, 8)).toDF("c1", "c2", "c3")
-    // drop table first, then insert new Row (1, 5, 8)
-    // ignore upsert options
-    df2.write.mode(SaveMode.Overwrite)
-      .option("upsert", true).option("upsert_updateColumns", "c2, c3")
-      .jdbc(jdbcUrl, "upsertT1", new Properties)
-    val df3 = spark.read.jdbc(jdbcUrl, "upsertT1", new Properties())
-    assert(df3.filter("c1=1").collect.head.getInt(1) == 5)
-    assert(df3.filter("c1=1").collect.head.getInt(2) == 8)
-    val df4 = Seq((2, 3, 20)).toDF("c1", "c2", "c3")
-    df4.write.mode(SaveMode.Overwrite)
-      .option("upsert", true).option("upsert_updateColumns", "c3")
-      .jdbc(jdbcUrl, "upsertT2", new Properties)
-    val df5 = spark.read.jdbc(jdbcUrl, "upsertT2", new Properties())
-    assert(df5.filter("c1=1").collect.size == 0)
-    assert(df5.filter("c1=2").collect.head.getInt(1) == 3)
-    assert(df5.filter("c1=2").collect.head.getInt(2) == 20)
   }
 }

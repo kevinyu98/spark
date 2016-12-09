@@ -113,11 +113,11 @@ private object PostgresDialect extends JdbcDialect {
       UpsertInfo(Array.empty[String], Array.empty[String])): PreparedStatement = {
     require(upsertParam.upsertConditionColumns.nonEmpty,
       "Upsert option requires column names on which duplicate rows are identified. " +
-         "Please specify option(\"upsert_conditionColumns\", \"c1, c2, ...\")")
+         "Please specify option(\"upsertConditionColumn\", \"c1, c2, ...\")")
     require(conn.getMetaData.getDatabaseProductVersion.compareToIgnoreCase("9.5") > 0,
       "INSERT INTO with ON CONFLICT clause only support by PostgreSQL 9.5 and up.")
 
-    if (!upsertParam.upsertConditionColumns.forall(rddSchema.fieldNames.contains(_))) {
+   /* if (!upsertParam.upsertConditionColumns.forall(rddSchema.fieldNames.contains(_))) {
       throw new IllegalArgumentException(
         s"""
            |Condition columns specified should be a subset of the schema in the input dataset.
@@ -125,7 +125,7 @@ private object PostgresDialect extends JdbcDialect {
            |condition_columns: ${upsertParam.upsertConditionColumns.mkString(", ")}
         """.stripMargin)
     }
-
+    */
     val insertColumns = rddSchema.fields.map(_.name).mkString(", ")
     val conflictTarget = upsertParam.upsertConditionColumns.mkString(", ")
     val placeholders = rddSchema.fields.map(_ => "?").mkString(",")
@@ -151,7 +151,6 @@ private object PostgresDialect extends JdbcDialect {
          |DO NOTHING
        """.stripMargin
     }
-    print("\nstmt: " + sql)
     conn.prepareStatement(sql)
   }
 }

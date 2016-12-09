@@ -87,7 +87,7 @@ class JdbcRelationProvider extends CreatableRelationProvider
         }
       } else {
         createTable(df.schema, url, table, createTableOptions, conn)
-        saveTable(df, url, table, jdbcOptions, mode)
+        saveTable(df, url, table, jdbcOptions, mode, !tableExists)
       }
     } finally {
       conn.close()
