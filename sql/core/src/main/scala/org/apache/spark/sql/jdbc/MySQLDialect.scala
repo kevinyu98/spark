@@ -59,14 +59,6 @@ private case object MySQLDialect extends JdbcDialect {
       "Upsert option requires update column names." +
         "Please specify option(\"upsertUpdateColumn\", \"c1, c2, ...\")")
 
-  //  if (!upsertParam.upsertUpdateColumns.forall(rddSchema.fieldNames.contains(_))) {
-  //    throw new IllegalArgumentException(
-  //      s"""
-  //         |Update columns specified should be a subset of the schema in the input dataset.
-  //         |schema: ${rddSchema.fieldNames.mkString(", ")}
-  //         |condition_columns: ${upsertParam.upsertUpdateColumns.mkString(", ")}
-  //      """.stripMargin)
-  //  }
 
     val updateClause = if (upsertParam.upsertUpdateColumns.nonEmpty) {
       upsertParam.upsertUpdateColumns.map(x => s"$x = VALUES($x)").mkString(", ")

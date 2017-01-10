@@ -115,7 +115,6 @@ object JdbcUtils extends Logging {
     val columns = rddSchema.fields.map(x => dialect.quoteIdentifier(x.name)).mkString(",")
     val placeholders = rddSchema.fields.map(_ => "?").mkString(",")
     val sql = s"INSERT INTO $table ($columns) VALUES ($placeholders)"
-    print("\n mysql insert: " + s"$sql" + "\n")
     conn.prepareStatement(sql)
   }
 
@@ -683,8 +682,9 @@ object JdbcUtils extends Logging {
         false
       } else true
     } else false
-    print("/n saveTable isUpsert: " + isUpsert + "newtableFlag: " + newTableFlag + "\n")
-    // if upsert feature is on, validate the column name and prepare the upserParam
+    // if upsert feature is on, validate the column name and prepare the upsertParam
+    // if the input data(dataframe) have duplicate row, the upsert result is non-deterministic. It is documented at
+    // upsert(merge) wiki: https://en.wikipedia.org/wiki/Merge_(SQL)
     if (isUpsert) {
       val upsertUpdateColumns = options.upsertUpdateColumn
       val upsertConditionColumns = options.upsertConditionColumn

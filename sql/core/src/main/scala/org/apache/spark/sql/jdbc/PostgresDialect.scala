@@ -117,15 +117,6 @@ private object PostgresDialect extends JdbcDialect {
     require(conn.getMetaData.getDatabaseProductVersion.compareToIgnoreCase("9.5") > 0,
       "INSERT INTO with ON CONFLICT clause only support by PostgreSQL 9.5 and up.")
 
-   /* if (!upsertParam.upsertConditionColumns.forall(rddSchema.fieldNames.contains(_))) {
-      throw new IllegalArgumentException(
-        s"""
-           |Condition columns specified should be a subset of the schema in the input dataset.
-           |schema: ${rddSchema.fieldNames.mkString(", ")}
-           |condition_columns: ${upsertParam.upsertConditionColumns.mkString(", ")}
-        """.stripMargin)
-    }
-    */
     val insertColumns = rddSchema.fields.map(_.name).mkString(", ")
     val conflictTarget = upsertParam.upsertConditionColumns.mkString(", ")
     val placeholders = rddSchema.fields.map(_ => "?").mkString(",")

@@ -472,7 +472,8 @@ file directly with SQL.
 Save operations can optionally take a `SaveMode`, that specifies how to handle existing data if
 present. It is important to realize that these save modes do not utilize any locking and are not
 atomic. Additionally, when performing an `Overwrite`, the data will be deleted before writing out the
-new data.
+new data. When performing an `Append`, there is option to enable the upsert feature in SPARK. Right now it is available
+in MySQL and Postgres JdbcDialect.  
 
 <table class="table">
 <tr><th>Scala/Java</th><th>Any Language</th><th>Meaning</th></tr>
@@ -1125,6 +1126,23 @@ the following case-sensitive options:
      This is a JDBC writer related option. If specified, this option allows setting of database-specific table and partition options when creating a table (e.g., <code>CREATE TABLE t (name string) ENGINE=InnoDB.</code>). This option applies only to writing.
    </td>
   </tr>
+  
+  <tr>
+      <td><code>upsert, upsertConditionColumn, upsertUpdateColumn </code></td>
+      <td>
+        These options are JDBC writer related options. They describe how to
+        use upsert feature for different jdbcDialects. Right now, this feature implemented in MySQL, Postgres 
+        jdbcDialects. The upsert option is available only when <code>SaveMode.Append</code> is enabled,
+        in <code>SaveMode.Overwrite</code>, the existing table will drop or truncate first, including the unique constraints 
+        or primary key, then do the insert, so it will not have the scenario for upsert feature.
+        <code>upsertConditionColumn</code> must be specified for postgres jdbcDialect, the condition columns of the 
+        unique constraints or primary key columns.
+        <code>upsertUpdateColumn</code> must be specified for MySQL jdbcDialect, the update columns will be updated
+        with the input data set
+        When using upsert feature, please be aware that if the input data set has duplicate rows, the upsert operation is
+        non-deterministic, it is documented at the [upsert(merge) wiki:](https://en.wikipedia.org/wiki/Merge_(SQL)).
+      </td>
+    </tr>
 </table>
 
 <div class="codetabs">

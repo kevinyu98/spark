@@ -169,6 +169,21 @@ class MySQLIntegrationSuite extends DockerJDBCIntegrationSuite {
     df3.write.jdbc(jdbcUrl, "stringscopy", new Properties)
   }
 
+  test("upsert with Append without existing table") {
+    val df1 = Seq((1, 3), (2, 5)).toDF("c1", "c2")
+    df1.write.mode(SaveMode.Append).option("upsert", true).option("upsertUpdateColumn", "c1")
+      .jdbc(jdbcUrl, "upsertT", new Properties)
+    val df2 = spark.read.jdbc(jdbcUrl, "upsertT", new Properties)
+    assert(df2.count() == 2)
+    assert(df2.filter("C1=1").collect.head.get(1) == 3)
+
+    // table upsertT create without primary key or unique constraints, it will do the insert
+    val df3 = Seq((1, 4)).toDF("c1", "c2")
+    df3.write.mode(SaveMode.Append).option("upsert", true).option("upsertUpdateColumn", "c1")
+      .jdbc(jdbcUrl, "upsertT", new Properties)
+    assert(spark.read.jdbc(jdbcUrl, "upsertT", new Properties).filter("c1=1").count() == 2)
+  }
+
   test("Upsert and OverWrite mode") {
     //existing table has these rows
     //(1, 2, 3), (2, 3, 4), (3, 4, 5)
@@ -194,36 +209,21 @@ class MySQLIntegrationSuite extends DockerJDBCIntegrationSuite {
     val df1 = Seq((1, 3, 6), (2, 5, 6)).toDF("c1", "c2", "c3")
     val m = intercept[java.sql.SQLException] {
     df1.write.mode(SaveMode.Append).option("upsert", true).option("upsertUpdateColumn", "C11")
-      .jdbc(jdbcUrl, "upsertT", new Properties)
+      .jdbc(jdbcUrl, "upsertT1", new Properties)
     }.getMessage
     assert(m.contains("column C11 not found"))
 
     val n = intercept[java.sql.SQLException] {
     df1.write.mode(SaveMode.Append).option("upsert", true).option("upsertUpdateColumn", "C11")
-      .jdbc(jdbcUrl, "upsertT", new Properties)
+      .jdbc(jdbcUrl, "upsertT1", new Properties)
     }.getMessage
     assert(n.contains("column C11 not found"))
 
     val o = intercept[org.apache.spark.SparkException] {
     df1.write.mode(SaveMode.Append).option("upsert", true).option("upsertupdateColumn", "c1")
-      .jdbc(jdbcUrl, "upsertT", new Properties)
+      .jdbc(jdbcUrl, "upsertT1", new Properties)
     }.getMessage
     assert(o.contains("Upsert option requires update column names"))
-  }
-
-  test("upsert with Append without existing table") {
-    val df1 = Seq((1, 3), (2, 5)).toDF("c1", "c2")
-    df1.write.mode(SaveMode.Append).option("upsert", true).option("upsertUpdateColumn", "c1")
-      .jdbc(jdbcUrl, "upsertT", new Properties)
-    val df2 = spark.read.jdbc(jdbcUrl, "upsertT", new Properties)
-    assert(df2.count() == 2)
-    assert(df2.filter("C1=1").collect.head.get(1) == 3)
-
-    // table upsertT create without primary key or unique constraints, it will do the insert
-    val df3 = Seq((1, 4)).toDF("c1", "c2")
-    df3.write.mode(SaveMode.Append).option("upsert", true).option("upsertUpdateColumn", "c1")
-      .jdbc(jdbcUrl, "upsertT", new Properties)
-    assert(spark.read.jdbc(jdbcUrl, "upsertT", new Properties).filter("c1=1").count() == 2)
   }
 
   test("Upsert and Append mode -- data matching one column") {
@@ -245,18 +245,13 @@ class MySQLIntegrationSuite extends DockerJDBCIntegrationSuite {
     assert(df3.filter("c1=1").collect.head.getInt(2) == 7)
     assert(df3.filter("c1=2").collect.head.getInt(1) == 6)
     assert(df3.filter("c1=2").collect.head.getInt(2) == 8)
-    // turn upsert off, it will get exception
-   /* val df4 = Seq((1, 5, 9)).toDF("c1", "c2", "c3")
-    df4.write.mode(SaveMode.Append)
-      .option("upsert", false).option("upsertUpdateColumn", "c2, c3")
+    // turn upsert off, it will do the insert the row with duplicate key, and it will get nullPointerException
+    val df4 = Seq((1, 5, 9)).toDF("c1", "c2", "c3")
+    val n = intercept[org.apache.spark.SparkException] {
+    df4.write.mode(SaveMode.Append).option("upsert", false).option("upsertUpdateColumn", "C11")
       .jdbc(jdbcUrl, "upsertT1", new Properties)
-    assert(spark.read.jdbc(jdbcUrl, "upsertT1", new Properties).count() == 2)
-    val df4 = Seq((1, 5, 9), (2, 7, 10)).toDF("c1", "c2", "c3")
-   df4.write.mode(SaveMode.Append)
-      .option("upsert", false).option("upsertUpdateColumn", "c2, c3")
-      .jdbc(jdbcUrl, "upsertT1", new Properties)
-    assert(spark.read.jdbc(jdbcUrl, "upsertT1", new Properties).count() == 2)
-   */
+    }.getMessage
+    assert(n.contains("Cannot suppress a null exception"))
   }
 
   test("Upsert and Append mode -- data matching two columns") {

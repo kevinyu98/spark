@@ -183,11 +183,13 @@ class PostgresIntegrationSuite extends DockerJDBCIntegrationSuite {
     assert(df2.count() == 2)
     assert(df2.filter("C1=1").collect.head.get(1) == 3)
 
-    // table upsertT create without primary key or unique constraints, it will do the insert
+    // table upsertT create without primary key or unique constraints, it will throw the exception
     val df3 = Seq((1, 4)).toDF("c1", "c2")
+    val p = intercept[org.apache.spark.SparkException] {
     df3.write.mode(SaveMode.Append).option("upsert", true).option("upsertConditionColumn", "c1")
       .jdbc(jdbcUrl, "upsertT", new Properties)
-    assert(spark.read.jdbc(jdbcUrl, "upsertT", new Properties).filter("c1=1").count() == 2)
+      }.getMessage
+    assert(p.contains("there is no unique or exclusion constraint matching the ON CONFLICT specification"))
   }
 
   test("Upsert & Append test  -- matching one column") {
