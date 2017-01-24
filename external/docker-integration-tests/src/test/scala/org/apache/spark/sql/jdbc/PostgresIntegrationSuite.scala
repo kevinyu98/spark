@@ -201,7 +201,7 @@ class PostgresIntegrationSuite extends DockerJDBCIntegrationSuite {
     val df2 = Seq((1, 3, 6), (4, 5, 6)).toDF("c1", "c2", "c3")
     // condition on one column
     df2.write.mode(SaveMode.Append)
-      .option("upsert", true).option("upsertConditionColumn", "c1")
+      .option("upsert", true).option("upsertConditionColumn", "c1").option("upsertUpdateColumn", "c2, c3")
       .jdbc(jdbcUrl, "upsertT1", new Properties)
     val df3 = spark.read.jdbc(jdbcUrl, "upsertT1", new Properties())
     assert(df3.filter("c1=1").collect.head.getInt(1) == 3)

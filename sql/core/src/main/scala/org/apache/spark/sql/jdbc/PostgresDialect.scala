@@ -120,9 +120,14 @@ private object PostgresDialect extends JdbcDialect {
     val insertColumns = rddSchema.fields.map(_.name).mkString(", ")
     val conflictTarget = upsertParam.upsertConditionColumns.mkString(", ")
     val placeholders = rddSchema.fields.map(_ => "?").mkString(",")
-    val updateClause = rddSchema.fields.map(_.name)
-      .filterNot(upsertParam.upsertConditionColumns.contains(_))
-      .map(x => s"$x = EXCLUDED.$x").mkString(", ")
+    val updateClause = if (upsertParam.upsertUpdateColumns.nonEmpty) {
+      upsertParam.upsertUpdateColumns.map(x => s"$x = VALUES($x)").mkString(", ")
+    }
+    else {
+      rddSchema.fields.map(_.name)
+        .filterNot(upsertParam.upsertConditionColumns.contains(_))
+        .map(x => s"$x = EXCLUDED.$x").mkString(", ")
+    }
 
     // In the case where condition columns are the whole set of the rddSchema columns
     // and rddSchema columns may be a subset of the target table schema.
