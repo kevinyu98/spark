@@ -63,31 +63,6 @@ WHERE  t1a NOT IN (SELECT t2a
        AND t1b = t3b;
 
 -- TC 01.02
-SELECT          t1a,
-                t1b,
-                t1c,
-                count(distinct(t3a)),
-                t3b,
-                t3c
-FROM            t1
-FULL OUTER JOIN t3 on t1b != t3b
-RIGHT JOIN      t2 on t1c = t2c
-where           t1a NOT IN
-                (
-                       SELECT t2a
-                       FROM   t2
-                       WHERE  t2c NOT IN
-                              (
-                                     SELECT t1c
-                                     FROM   t1
-                                     WHERE  t1a = t2a))
-AND             t1b != t3b
-AND             t1d = t2d
-GROUP BY        t1a, t1b, t1c, t3a, t3b, t3c
-HAVING          count(distinct(t3a)) >= 1
-ORDER BY        t1a;
-
--- TC 01.03
 SELECT *
 FROM   t1
 WHERE  t1a NOT IN
@@ -104,7 +79,7 @@ AND    t1d NOT IN
               RIGHT JOIN t1 on t2e = t1e
               WHERE t1a = t2a);
 
--- TC 01.04
+-- TC 01.03
 SELECT Count(DISTINCT( t1a )),
        t1b,
        t1c,
@@ -122,7 +97,7 @@ HAVING t1d NOT IN (SELECT t2d
                    WHERE  t1d = t2d)
 ORDER BY t1b DESC;
 
--- TC 01.05
+-- TC 01.04
 SELECT   COUNT(DISTINCT(t1a)),
          t1b,
          t1c,
@@ -138,7 +113,7 @@ GROUP BY t1b,
          t1d
 HAVING   t1b < sum(t1c);
 
--- TC 01.06
+-- TC 01.05
 SELECT   COUNT(DISTINCT(t1a)),
          t1b,
          t1c,
