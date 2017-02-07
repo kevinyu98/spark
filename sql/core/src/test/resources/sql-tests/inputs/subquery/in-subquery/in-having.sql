@@ -50,7 +50,9 @@ create temporary view t3 as select * from values
 -- correlated IN subquery
 -- HAVING in the subquery
 -- TC 01.01
-SELECT *
+SELECT t1a,
+       t1b,
+       t1h
 FROM   t1
 WHERE  t1b IN (SELECT t2b
                FROM   t2
@@ -58,7 +60,9 @@ WHERE  t1b IN (SELECT t2b
                HAVING t2b < 10);
 
 -- TC 01.02
-SELECT *
+SELECT t1a,
+       t1b,
+       t1c
 FROM   t1
 WHERE  t1b IN (SELECT Min(t2b)
                FROM   t2
@@ -131,6 +135,7 @@ FROM   t1
 WHERE  t1d NOT IN (SELECT t2d
                    FROM   t2
                    WHERE  t1a = t2a
+                   GROUP BY t2c, t2d
                    HAVING t2c > 8)
 GROUP  BY t1a, t1b
 HAVING t1b < 10;

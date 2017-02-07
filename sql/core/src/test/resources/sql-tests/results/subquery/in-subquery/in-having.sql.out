@@ -67,23 +67,27 @@ struct<>
 
 
 -- !query 3
-SELECT *
+SELECT t1a,
+       t1b,
+       t1h
 FROM   t1
 WHERE  t1b IN (SELECT t2b
                FROM   t2
                GROUP BY t2b
                HAVING t2b < 10)
 -- !query 3 schema
-struct<t1a:string,t1b:smallint,t1c:int,t1d:bigint,t1e:float,t1f:double,t1g:decimal(2,-2),t1h:timestamp,t1i:date>
+struct<t1a:string,t1b:smallint,t1h:timestamp>
 -- !query 3 output
-val1a	6	8	10	15.0	20.0	2000	2014-04-04 01:00:00	2014-04-04
-val1a	6	8	10	15.0	20.0	2000	2014-04-04 01:02:00.001	2014-04-04
-val1b	8	16	19	17.0	25.0	2600	2014-05-04 01:01:00	2014-05-04
-val1c	8	16	19	17.0	25.0	2600	2014-05-04 01:02:00.001	2014-05-05
+val1a	6	2014-04-04 01:00:00
+val1a	6	2014-04-04 01:02:00.001
+val1b	8	2014-05-04 01:01:00
+val1c	8	2014-05-04 01:02:00.001
 
 
 -- !query 4
-SELECT *
+SELECT t1a,
+       t1b,
+       t1c
 FROM   t1
 WHERE  t1b IN (SELECT Min(t2b)
                FROM   t2
@@ -91,9 +95,9 @@ WHERE  t1b IN (SELECT Min(t2b)
                GROUP  BY t2b
                HAVING t2b > 1)
 -- !query 4 schema
-struct<t1a:string,t1b:smallint,t1c:int,t1d:bigint,t1e:float,t1f:double,t1g:decimal(2,-2),t1h:timestamp,t1i:date>
+struct<t1a:string,t1b:smallint,t1c:int>
 -- !query 4 output
-val1b	8	16	19	17.0	25.0	2600	2014-05-04 01:01:00	2014-05-04
+val1b	8	16
 
 
 -- !query 5
@@ -187,6 +191,7 @@ FROM   t1
 WHERE  t1d NOT IN (SELECT t2d
                    FROM   t2
                    WHERE  t1a = t2a
+                   GROUP BY t2c, t2d
                    HAVING t2c > 8)
 GROUP  BY t1a, t1b
 HAVING t1b < 10

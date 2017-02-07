@@ -49,7 +49,9 @@ create temporary view t3 as select * from values
 
 -- correlated IN subquery
 -- TC 01.01
-SELECT *
+SELECT t1a,
+       t1b,
+       t1h
 FROM   t1
 WHERE  ( t1a, t1h ) NOT IN (SELECT t2a,
                                    t2h
@@ -59,7 +61,9 @@ WHERE  ( t1a, t1h ) NOT IN (SELECT t2a,
 AND t1a = 'val1a';
 
 -- TC 01.02
-SELECT *
+SELECT t1a,
+       t1b,
+       t1d
 FROM   t1
 WHERE  ( t1b, t1d ) IN (SELECT t2b,
                                t2d
@@ -69,7 +73,9 @@ WHERE  ( t1b, t1d ) IN (SELECT t2b,
                                        WHERE  t2b > t3b));
 
 -- TC 01.03
-SELECT *
+SELECT t1a,
+       t1b,
+       t1d
 FROM   t1
 WHERE  ( t1b, t1d ) NOT IN (SELECT t2b,
                                    t2d
