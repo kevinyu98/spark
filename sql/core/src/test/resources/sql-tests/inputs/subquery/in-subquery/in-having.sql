@@ -113,12 +113,16 @@ HAVING t1a IN (SELECT t2a
 
 -- HAVING clause with NOT IN
 -- TC 01.07
-SELECT *
+SELECT t1a,
+       t1c,
+       Min(t1d)
 FROM   t1
 WHERE  t1a NOT IN (SELECT t2a
                    FROM   t2
                    GROUP BY t2a
-                   HAVING t2a > 'val2a');
+                   HAVING t2a > 'val2a')
+GROUP BY t1a, t1c
+HAVING Min(t1d) > t1c;
 
 -- TC 01.08
 SELECT t1a,
